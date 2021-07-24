@@ -1,0 +1,90 @@
+package {{if .Typed}} {{- ToLower .ServicePackage}}
+
+import (
+    "context"
+    "time"
+
+    "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
+    "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+)
+
+type {{ToCamel .Name}}Resource struct{}
+
+type {{ToCamel .Name}}Model struct {
+    // TODO - Schema in Go Types format here
+}
+
+{{if .NoUpdate}}var _ sdk.Resource = {{else}}var _ sdk.ResourceWithUpdate = {{end}}{{ToCamel .Name}}Resource{}
+
+func (r {{ToCamel .Name}}Resource) ModelObject() interface{} {
+    return {{ToCamel .Name}}Model{}
+}
+
+func (r {{ToCamel .Name}}Resource) ResourceType() string {
+    return "{{- TfName .ProviderName .Name -}}"
+}
+
+func (r {{ToCamel .Name}}Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+    panic("Implement me") // TODO - Add Validation func return here
+}
+
+func (r {{ToCamel .Name}}Resource) Arguments() map[string]*pluginsdk.Schema {
+    return map[string]*pluginsdk.Schema{
+        /*
+            TODO - This sections is for configurable items, `Required: true` items first, followed by`Optional: true`,
+            both in alphabetical order
+        */
+    }
+}
+
+func (r {{ToCamel .Name}}Resource) Attributes() map[string]*pluginsdk.Schema {
+    return map[string]*pluginsdk.Schema{
+        /*
+            TODO - This section is for `Computed: true` only items, i.e. useful values that are returned by the resource
+            that can be used as outputs or passed programmatically to other resources or data sources.
+        */
+    }
+}
+
+func (r {{ToCamel .Name}}Resource) Create() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Timeout: 30 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            // TODO - Create Func
+            return nil
+        },
+    }
+}
+
+func (r {{ToCamel .Name}}Resource) Read() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Timeout: 5 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            // TODO - Read Func
+            return nil
+        },
+    }
+}
+
+func (r {{ToCamel .Name}}Resource) Delete() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Timeout: 5 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            // TODO - Delete Func
+            return nil
+        },
+    }
+}
+{{if not .NoUpdate}}
+func (r {{ToCamel .Name}}Resource) Update() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Timeout: 30 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            // TODO - Delete Func
+            return nil
+        },
+    }
+}
+{{end}}
+{{else}} {{- ToLower .ProviderName}} {{end}}
+{{/* TODO - Untyped resource */}}
