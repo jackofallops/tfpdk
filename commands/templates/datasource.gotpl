@@ -1,4 +1,4 @@
-package {{if .Typed}} {{- ToLower .ServicePackage}}
+package {{if .ServicePackage}}{{ToLower .ServicePackage}}{{else}}{{ToLower .ProviderName}}{{end}}{{if .Typed}}
 
 import (
     "context"
@@ -27,8 +27,8 @@ func (r {{ToCamel .Name}}DataSource) ResourceType() string {
 func (r {{ToCamel .Name}}DataSource) Arguments() map[string]*pluginsdk.Schema {
     return map[string]*pluginsdk.Schema{
         /*
-            TODO - This sections is for configurable items, `Required: true` items first, followed by`Optional: true`,
-            both in alphabetical order
+        TODO - This sections is for properties used to look up the desired resource for this data source,
+        `Required: true` items first, followed by`Optional: true`, both in alphabetical order
         */
     }
 }
@@ -36,8 +36,8 @@ func (r {{ToCamel .Name}}DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (r {{ToCamel .Name}}DataSource) Attributes() map[string]*pluginsdk.Schema {
     return map[string]*pluginsdk.Schema{
         /*
-            TODO - This section is for `Computed: true` only items, i.e. useful values that are returned by the resource
-            that can be used as outputs or passed programmatically to other resources or data sources.
+        TODO - This section is for `Computed: true` only items, i.e. useful values that are returned by the resource
+        that can be used as outputs or passed programmatically to other resources or data sources.
         */
     }
 }
@@ -50,6 +50,34 @@ func (r {{ToCamel .Name}}DataSource) Read() sdk.ResourceFunc {
             return nil
         },
     }
-}{{else}} {{- ToLower .ProviderName}} {{end}}
+}{{else}}
 
-{{- /* TODO - Untyped resource */ -}}
+import (
+    "time"
+
+    "github.com/terraform-providers/terraform-provider-{{- ToLower .ProviderName -}}/{{- ToLower .ProviderName -}}/internal/tf/pluginsdk"
+    )
+
+func dataSource{{ToCamel .Name}}() *pluginsdk.Resource {
+    return &pluginsdk.Resource{
+        Read: dataSource{{ToCamel .Name}}Read,
+
+        Timeouts: &pluginsdk.ResourceTimeout{
+            Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+        },
+
+        Schema: map[string]*pluginsdk.Schema{
+            /*
+            TODO - This sections is for properties used to look up the desired resource for this data source,
+            `Required: true` items first, followed by`Optional: true`, both in alphabetical order, finally
+            `Computed: true` only items for properties of the data source to be made available to the user
+            */
+        },
+    }
+}
+
+func dataSource{{ToCamel .Name}}Read (d *pluginsdk.ResourceData, meta interface{}) error {
+    // TODO - Implement Data Source Read
+    return nil
+}
+{{end}}

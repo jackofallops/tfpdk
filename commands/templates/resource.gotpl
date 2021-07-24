@@ -1,4 +1,4 @@
-package {{if .Typed}} {{- ToLower .ServicePackage}}
+package {{if .ServicePackage}}{{ToLower .ServicePackage}}{{else}}{{ToLower .ProviderName}}{{end}} {{if .Typed}}
 
 import (
     "context"
@@ -14,7 +14,7 @@ type {{ToCamel .Name}}Model struct {
     // TODO - Schema in Go Types format here
 }
 
-{{if .NoUpdate}}var _ sdk.Resource = {{else}}var _ sdk.ResourceWithUpdate = {{end}}{{ToCamel .Name}}Resource{}
+{{if .HasUpdate}}var _ sdk.ResourceWithUpdate = {{else}}var _ sdk.Resource = {{end}}{{ToCamel .Name}}Resource{}
 
 func (r {{ToCamel .Name}}Resource) ModelObject() interface{} {
     return {{ToCamel .Name}}Model{}
@@ -31,8 +31,8 @@ func (r {{ToCamel .Name}}Resource) IDValidationFunc() pluginsdk.SchemaValidateFu
 func (r {{ToCamel .Name}}Resource) Arguments() map[string]*pluginsdk.Schema {
     return map[string]*pluginsdk.Schema{
         /*
-            TODO - This sections is for properties used to look up the desired resource for this data source,
-            `Required: true` items first, followed by`Optional: true`, both in alphabetical order
+            TODO - This sections is for configurable items, `Required: true` items first, followed by `Optional: true`,
+            both in alphabetical order
         */
     }
 }
@@ -51,6 +51,7 @@ func (r {{ToCamel .Name}}Resource) Create() sdk.ResourceFunc {
         Timeout: 30 * time.Minute,
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
             // TODO - Create Func
+            // TODO - Don't forget to set the ID! e.g. metadata.SetID(id)
             return nil
         },
     }
@@ -75,7 +76,7 @@ func (r {{ToCamel .Name}}Resource) Delete() sdk.ResourceFunc {
         },
     }
 }
-{{if not .NoUpdate}}
+{{if .HasUpdate}}
 func (r {{ToCamel .Name}}Resource) Update() sdk.ResourceFunc {
     return sdk.ResourceFunc{
         Timeout: 30 * time.Minute,
@@ -85,5 +86,65 @@ func (r {{ToCamel .Name}}Resource) Update() sdk.ResourceFunc {
         },
     }
 }{{end}}
-{{else}} {{- ToLower .ProviderName}} {{end}}
+{{else}}
+
+import (
+    "time"
+
+    "github.com/terraform-providers/terraform-provider-{{- ToLower .ProviderName -}}/{{- ToLower .ProviderName -}}/internal/tf/pluginsdk"
+)
+
+func resource{{ToCamel .Name}}() *pluginsdk.Resource {
+    return &pluginsdk.Resource{
+        Create: resource{{- .Name -}}Create,
+        Read:   resource{{- .Name -}}Read,{{if .HasUpdate}}
+        Update: resource{{- .Name -}}Update,{{end}}
+        Delete: resource{{- .Name -}}Delete,
+
+        Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+            // TODO - Drop the appropriate ID Parse Function in here e.g.
+            // _, err := parse.ResourceGroupID(id)
+            // return err
+            return nil
+        }),
+
+        Timeouts: &pluginsdk.ResourceTimeout{
+            Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+            Read:   pluginsdk.DefaultTimeout(5 * time.Minute),{{if .HasUpdate}}
+            Update: pluginsdk.DefaultTimeout(30 * time.Minute),{{end}}
+            Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+        },
+
+
+        Schema: map[string]*pluginsdk.Schema{
+            /*
+            TODO - This section is for `Computed: true` only items, i.e. useful values that are returned by the resource
+            that can be used as outputs or passed programmatically to other resources or data sources.
+            */
+        },
+    }
+}
+
+func resource{{ToCamel .Name}}Create(d *pluginsdk.ResourceData, meta interface{}) error {
+    // TODO - Implement Resource Create
+    // TODO - Don't forget to set the ID! e.g. d.SetID(id) ;)
+    return nil
+}
+
+func resource{{ToCamel .Name}}Read(d *pluginsdk.ResourceData, meta interface{}) error {
+    // TODO - Implement Resource Read
+    return nil
+}
+
+func resource{{ToCamel .Name}}Delete(d *pluginsdk.ResourceData, meta interface{}) error {
+    // TODO - Implement Resource Delete
+    return nil
+}
+
+{{if .HasUpdate}}func resource{{ToCamel .Name}}Update(d *pluginsdk.ResourceData, meta interface{}) error {
+    // TODO - Implement Resource Update
+    return nil
+}{{end}}
+
+{{end}}
 {{- /* TODO - Untyped resource */ -}}

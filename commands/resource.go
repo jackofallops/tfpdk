@@ -18,7 +18,7 @@ var _ cli.Command = ResourceCommand{}
 type TypedResourceData struct {
 	Name           string
 	ServicePackage string
-	NoUpdate       bool
+	HasUpdate      bool
 	ProviderName   string
 	Typed          bool
 }
@@ -26,8 +26,8 @@ type TypedResourceData struct {
 func (r ResourceCommand) Run(args []string) int {
 	data := TypedResourceData{
 		ProviderName: "azurerm", // Defaulting for now, will need to eval from os.path later
-		Typed:        true,      //defaulting to true for now, since AzureRM is the prototype target
 	}
+
 	if len(args) == 0 {
 		fmt.Print(r.Help())
 		return 1
@@ -42,14 +42,14 @@ func (r ResourceCommand) Run(args []string) int {
 
 		switch strings.ToLower(strings.TrimLeft(arg[0], "-")) {
 		case "name":
-			if len(arg) == 2{
+			if len(arg) == 2 {
 				data.Name = arg[1]
 			} else {
 				fmt.Println("argument `name` requires a value, eg `-name=some_resource_name`")
 			}
 
-		case "no-update":
-			data.NoUpdate = true
+		case "has-update":
+			data.HasUpdate = true
 
 		case "servicepackage":
 			data.ServicePackage = arg[1]
@@ -78,10 +78,11 @@ func (r ResourceCommand) Run(args []string) int {
 		outputPath = fmt.Sprintf("%s/internal/%s_resource.go", data.ProviderName, strcase.ToSnake(data.Name))
 	}
 
-	if _, err := os.Stat(outputPath); err == nil {
-		fmt.Printf("Error: A resource with this name already exists and will not be overwritten. Please remove this file if you wish to regenerate.")
-		return 1
-	}
+	//if _, err := os.Stat(outputPath); err == nil {
+	//	fmt.Printf("Error: A resource with this name already exists and will not be overwritten. Please remove this file if you wish to regenerate.")
+	//	return 1
+	//}
+
 	f, err := os.Create(outputPath)
 	if err != nil {
 		fmt.Printf("Error: failed opening output resource file for writing: %+v", err.Error())
@@ -112,7 +113,7 @@ Options:
 
 -servicepackage=string		(Optional) place the resource under the named service package
 
--no-update			(Optional) Don't generate an update func. Use this for resources that cannot be updated in place. Note all schema properties must be 'ForceNew: true'
+-has-update			(Optional) Use if the new resouce supports updating in place. Note if not used all schema properties must be 'ForceNew: true'
 
 -typed				(Optional) Generate a resource for use with the Typed Resource SDK
 
