@@ -7,10 +7,13 @@ import (
 	"text/template"
 
 	"github.com/iancoleman/strcase"
+	"github.com/mitchellh/cli"
 )
 
 type ResourceCommand struct {
 }
+
+var _ cli.Command = ResourceCommand{}
 
 type TypedResourceData struct {
 	Name           string
@@ -29,6 +32,7 @@ func (r ResourceCommand) Run(args []string) int {
 		fmt.Print(r.Help())
 		return 1
 	}
+
 	for _, v := range args {
 		arg := strings.Split(v, "=")
 		if len(arg) > 2 {
@@ -38,17 +42,30 @@ func (r ResourceCommand) Run(args []string) int {
 
 		switch strings.ToLower(strings.TrimLeft(arg[0], "-")) {
 		case "name":
-			data.Name = arg[1]
+			if len(arg) == 2{
+				data.Name = arg[1]
+			} else {
+				fmt.Println("argument `name` requires a value, eg `-name=some_resource_name`")
+			}
+
 		case "no-update":
 			data.NoUpdate = true
+
 		case "servicepackage":
 			data.ServicePackage = arg[1]
+
 		case "typed":
 			data.Typed = true
+
 		default:
 			fmt.Printf("unrecognised option %q", arg[0])
 			return 1
 		}
+	}
+
+	if data.Name == "" {
+		fmt.Printf("Error: missing required argument `-name`")
+		return 1
 	}
 
 	tpl := template.Must(template.New("resource.gotpl").Funcs(TplFuncMap).ParseFS(Templatedir, "templates/resource.gotpl"))
@@ -91,13 +108,13 @@ Generates a scaffolded resource, optionally under a service package for this pro
 
 Options:
 
--name=string				(Required) the name of the new resource, can be in the form resource_name, ResourceName, or resource-name
+-name=string			(Required) the name of the new resource, can be in the form resource_name, ResourceName, or resource-name
 
 -servicepackage=string		(Optional) place the resource under the named service package
 
--no-update					(Optional) Don't generate an update func. Use this for resources that cannot be updated in place. Note all schema properties must be 'ForceNew: true'
+-no-update			(Optional) Don't generate an update func. Use this for resources that cannot be updated in place. Note all schema properties must be 'ForceNew: true'
 
--typed						(Optional) Generate a resource for use with the Typed Resource SDK
+-typed				(Optional) Generate a resource for use with the Typed Resource SDK
 
 `)
 }

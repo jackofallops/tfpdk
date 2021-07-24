@@ -4,8 +4,8 @@ import (
     "context"
     "time"
 
-    "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
-    "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/pluginsdk"
+    "github.com/terraform-providers/terraform-provider-{{- ToLower .ProviderName -}}/{{- ToLower .ProviderName -}}/internal/sdk"
+    "github.com/terraform-providers/terraform-provider-{{- ToLower .ProviderName -}}/{{- ToLower .ProviderName -}}/internal/tf/pluginsdk"
 )
 
 type {{ToCamel .Name}}Resource struct{}
@@ -31,8 +31,8 @@ func (r {{ToCamel .Name}}Resource) IDValidationFunc() pluginsdk.SchemaValidateFu
 func (r {{ToCamel .Name}}Resource) Arguments() map[string]*pluginsdk.Schema {
     return map[string]*pluginsdk.Schema{
         /*
-            TODO - This sections is for configurable items, `Required: true` items first, followed by`Optional: true`,
-            both in alphabetical order
+            TODO - This sections is for properties used to look up the desired resource for this data source,
+            `Required: true` items first, followed by`Optional: true`, both in alphabetical order
         */
     }
 }
@@ -40,8 +40,8 @@ func (r {{ToCamel .Name}}Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r {{ToCamel .Name}}Resource) Attributes() map[string]*pluginsdk.Schema {
     return map[string]*pluginsdk.Schema{
         /*
-            TODO - This section is for `Computed: true` only items, i.e. useful values that are returned by the resource
-            that can be used as outputs or passed programmatically to other resources or data sources.
+            TODO - This section is for `Computed: true` only items, i.e. useful values that are returned by the
+            datasource that can be used as outputs or passed programmatically to other resources or data sources.
         */
     }
 }
@@ -84,7 +84,6 @@ func (r {{ToCamel .Name}}Resource) Update() sdk.ResourceFunc {
             return nil
         },
     }
-}
-{{end}}
+}{{end}}
 {{else}} {{- ToLower .ProviderName}} {{end}}
-{{/* TODO - Untyped resource */}}
+{{- /* TODO - Untyped resource */ -}}

@@ -1,0 +1,55 @@
+package {{if .Typed}} {{- ToLower .ServicePackage}}
+
+import (
+    "context"
+    "time"
+
+    "github.com/terraform-providers/terraform-provider-{{- ToLower .ProviderName -}}/{{- ToLower .ProviderName -}}/internal/sdk"
+    "github.com/terraform-providers/terraform-provider-{{- ToLower .ProviderName -}}/{{- ToLower .ProviderName -}}/internal/tf/pluginsdk"
+)
+
+type {{ToCamel .Name}}DataSource struct{}
+{{if not .UseResourceModel}}
+type {{ToCamel .Name}}Model struct {
+    // TODO - Schema in Go Types format here
+}
+{{end}}
+var _ sdk.DataSource = {{ToCamel .Name}}DataSource{}
+
+func (r {{ToCamel .Name}}DataSource) ModelObject() interface{} {
+    return {{ToCamel .Name}}Model{}
+}
+
+func (r {{ToCamel .Name}}DataSource) ResourceType() string {
+    return "{{- TfName .ProviderName .Name -}}"
+}
+
+func (r {{ToCamel .Name}}DataSource) Arguments() map[string]*pluginsdk.Schema {
+    return map[string]*pluginsdk.Schema{
+        /*
+            TODO - This sections is for configurable items, `Required: true` items first, followed by`Optional: true`,
+            both in alphabetical order
+        */
+    }
+}
+
+func (r {{ToCamel .Name}}DataSource) Attributes() map[string]*pluginsdk.Schema {
+    return map[string]*pluginsdk.Schema{
+        /*
+            TODO - This section is for `Computed: true` only items, i.e. useful values that are returned by the resource
+            that can be used as outputs or passed programmatically to other resources or data sources.
+        */
+    }
+}
+
+func (r {{ToCamel .Name}}DataSource) Read() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Timeout: 5 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            // TODO - Read Func
+            return nil
+        },
+    }
+}{{else}} {{- ToLower .ProviderName}} {{end}}
+
+{{- /* TODO - Untyped resource */ -}}

@@ -19,6 +19,9 @@ func main() {
 		"resource": func() (cli.Command, error) {
 			return &commands.ResourceCommand{}, nil
 		},
+		"datasource": func() (cli.Command, error) {
+			return &commands.DataSourceCommand{}, nil
+		},
 	}
 
 	tfpdk := cli.CLI{

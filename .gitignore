@@ -16,3 +16,6 @@ vendor/
 
 #generated outputs
 internal/
+
+# editors
+.idea/

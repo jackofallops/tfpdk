@@ -9,3 +9,5 @@ Terraform Provider Development Kit
 - [ ] optionally populate the Typed SDK into the init step? 
 - [ ] Dynamically read provider name for item generation
 - [ ] Populate `IDValidationFunc()` in template for IDs (Pandora)
+- [ ] Clients?
+- [ ] Autocomplete?
