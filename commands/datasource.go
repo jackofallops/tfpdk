@@ -42,6 +42,9 @@ func (d DataSourceCommand) Run(args []string) int {
 		}
 
 		switch strings.ToLower(strings.TrimLeft(arg[0], "-")) {
+		case "help":
+			fmt.Printf(d.Help())
+			return 0
 		case "name":
 			if len(arg) == 2 {
 				data.Name = arg[1]
@@ -130,5 +133,5 @@ Example:
 }
 
 func (d DataSourceCommand) Synopsis() string {
-	return ""
+	return "creates boiler-plate Data Sources."
 }

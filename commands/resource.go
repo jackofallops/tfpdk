@@ -41,6 +41,9 @@ func (r ResourceCommand) Run(args []string) int {
 		}
 
 		switch strings.ToLower(strings.TrimLeft(arg[0], "-")) {
+		case "help":
+			fmt.Printf(r.Help())
+			return 0
 		case "name":
 			if len(arg) == 2 {
 				data.Name = arg[1]
@@ -121,5 +124,5 @@ Options:
 }
 
 func (r ResourceCommand) Synopsis() string {
-	return ""
+	return "creates boiler-plate resources."
 }

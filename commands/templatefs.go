@@ -6,4 +6,3 @@ import (
 
 //go:embed templates/*
 var Templatedir embed.FS
-
