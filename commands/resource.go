@@ -6,6 +6,8 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/jackofallops/tfpdk/helpers"
+
 	"github.com/iancoleman/strcase"
 	"github.com/mitchellh/cli"
 )
@@ -24,9 +26,14 @@ type TypedResourceData struct {
 }
 
 func (r ResourceCommand) Run(args []string) int {
-	data := TypedResourceData{
-		ProviderName: "azurerm", // Defaulting for now, will need to eval from os.path later
+	data := TypedResourceData{}
+
+	providerName, err := helpers.ProviderName()
+	if err != nil {
+		fmt.Printf("determining provider name: %+v", err)
+		return 1
 	}
+	data.ProviderName = *providerName
 
 	if len(args) == 0 {
 		fmt.Print(r.Help())

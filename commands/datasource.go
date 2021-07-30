@@ -6,6 +6,8 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/jackofallops/tfpdk/helpers"
+
 	"github.com/iancoleman/strcase"
 	"github.com/mitchellh/cli"
 )
@@ -24,10 +26,16 @@ type TypedDataSourceData struct {
 
 func (d DataSourceCommand) Run(args []string) int {
 	data := TypedDataSourceData{
-		ProviderName:     "azurerm",
 		Typed:            false,
 		UseResourceModel: false,
 	}
+
+	providerName, err := helpers.ProviderName()
+	if err != nil {
+		fmt.Printf("determining provider name: %+v", err)
+		return 1
+	}
+	data.ProviderName = *providerName
 
 	if len(args) == 0 {
 		fmt.Print(d.Help())
