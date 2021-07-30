@@ -49,6 +49,7 @@ func (r ResourceCommand) Run(args []string) int {
 				data.Name = arg[1]
 			} else {
 				fmt.Println("argument `name` requires a value, eg `-name=some_resource_name`")
+				return 1
 			}
 
 		case "has-update":
@@ -81,10 +82,10 @@ func (r ResourceCommand) Run(args []string) int {
 		outputPath = fmt.Sprintf("%s/internal/%s_resource.go", data.ProviderName, strcase.ToSnake(data.Name))
 	}
 
-	//if _, err := os.Stat(outputPath); err == nil {
-	//	fmt.Printf("Error: A resource with this name already exists and will not be overwritten. Please remove this file if you wish to regenerate.")
-	//	return 1
-	//}
+	if _, err := os.Stat(outputPath); err == nil {
+		fmt.Printf("Error: A resource with this name already exists and will not be overwritten. Please remove this file if you wish to regenerate.")
+		return 1
+	}
 
 	f, err := os.Create(outputPath)
 	if err != nil {

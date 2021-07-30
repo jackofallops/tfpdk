@@ -87,10 +87,10 @@ func (d DataSourceCommand) Run(args []string) int {
 		outputPath = fmt.Sprintf("%s/internal/%s_data_source.go", data.ProviderName, strcase.ToSnake(data.Name))
 	}
 
-	//if _, err := os.Stat(outputPath); err == nil {
-	//	fmt.Printf("Error: A data source with this name already exists and will not be overwritten. Please remove this file if you wish to regenerate.")
-	//	return 1
-	//}
+	if _, err := os.Stat(outputPath); err == nil {
+		fmt.Printf("Error: A data source with this name already exists and will not be overwritten. Please remove this file if you wish to regenerate.")
+		return 1
+	}
 
 	f, err := os.Create(outputPath)
 	if err != nil {
