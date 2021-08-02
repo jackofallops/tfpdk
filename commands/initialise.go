@@ -1,12 +1,32 @@
 package commands
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
 
-type InitialiseCommand struct{}
+	"github.com/mitchellh/cli"
+)
+
+type InitialiseCommand struct {
+	Ui cli.Ui
+}
 
 func (i InitialiseCommand) Run(args []string) int {
 	// TODO - Clone the scaffold project to path from `args`?
-	fmt.Printf("Not yet implemented - sorry!")
+	if len(args) == 0 {
+		fmt.Print(i.Help())
+		return 1
+	}
+
+	for _, v := range args {
+		arg := strings.Split(v, "=")
+		if len(arg) > 2 {
+			fmt.Printf("malformed argument %q", arg)
+			return 1
+		}
+
+	}
+
 	return 0
 }
 

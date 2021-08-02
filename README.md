@@ -1,7 +1,9 @@
 # tfpdk
 Terraform Provider Development Kit
+ 
+NOTE: Expects to be run from the root of a validly named Terraform provider e.g. `./terraform-provider-myprovider`
 
-NOTE: hard coded to [terraform-provider-azurerm](https://github.com/terraform-providers/terraform-provider-azurerm) currently... 
+WARNING: currently needs the json output from `terraform providers schema -json` for the azurerm provider in `/tmp/azurerm-provider-out.json` 
 
 Run from the root of the provider project.
 
@@ -16,6 +18,7 @@ Run from the root of the provider project.
 - [ ] Populate `IDValidationFunc()` in template for IDs (Pandora)
 - [ ] Clients?
 - [ ] Autocomplete?
+- [x] Spike doc generation (just resources for now)
 
 
 ## Commands

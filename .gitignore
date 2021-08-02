@@ -14,8 +14,7 @@
 # Dependency directories
 vendor/
 
-#generated outputs
-internal/
-
 # editors
 .idea/
+
+*.tf

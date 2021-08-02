@@ -13,6 +13,7 @@ import (
 )
 
 type ResourceCommand struct {
+	Ui cli.Ui
 }
 
 var _ cli.Command = ResourceCommand{}

@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"strings"
@@ -12,7 +13,9 @@ import (
 	"github.com/mitchellh/cli"
 )
 
-type DocumentCommand struct{}
+type DocumentCommand struct {
+	Ui cli.Ui
+}
 
 var _ cli.Command = DocumentCommand{}
 
@@ -28,63 +31,39 @@ type DocumentData struct {
 	ResourceData   string
 }
 
+func (d *DocumentData) ParseArgs(args []string) (errors []error) {
+	docSet := flag.NewFlagSet("document", flag.ExitOnError)
+	docSet.StringVar(&d.Name, "name", "", "The name of the resource")
+	docSet.StringVar(&d.ServicePackage, "servicepackage", "", "The name of the Service Package the resource or data source belongs to")
+	docSet.StringVar(&d.DocType, "type", "", "The type of item to document, one of `resource` or `datasource`")
+	docSet.StringVar(&d.IDExample, "id", "", "An example of the ID this resource has when created (only valid for `-type=resource`)")
+	docSet.Parse(args)
+
+	if d.Name == "" {
+		errors = append(errors, fmt.Errorf("required option `-name` missing\n"))
+	}
+
+	if strings.EqualFold(d.DocType, "resource") && d.IDExample == "" {
+		errors = append(errors, fmt.Errorf("`-id` required when `-type=resource\n`"))
+	}
+
+	return errors
+}
+
 func (c DocumentCommand) Run(args []string) int {
-	data := DocumentData{}
+	data := &DocumentData{}
 
 	if len(args) == 0 {
 		fmt.Print(c.Help())
 		return 1
 	}
 
-	for _, v := range args {
-		arg := strings.Split(v, "=")
-		if len(arg) > 2 {
-			fmt.Printf("malformed argument %q", arg)
-			return 1
+	var err []error
+	err = data.ParseArgs(args)
+	if err != nil {
+		for _, e := range err {
+			c.Ui.Error(e.Error())
 		}
-		switch strings.ToLower(strings.TrimLeft(arg[0], "-")) {
-		case "help":
-			fmt.Printf(c.Help())
-			return 0
-
-		case "name":
-			if len(arg) == 2 {
-				data.Name = arg[1]
-			} else {
-				fmt.Println("argument `name` requires a value, eg `-name=some_resource_name`")
-				return 1
-			}
-
-		case "servicepackage":
-			if len(arg) == 2 {
-				data.ServicePackage = arg[1]
-			} else {
-				fmt.Println("argument `servicepackage` requires a value, eg `-servicepackage=somePackageName`")
-				return 1
-			}
-		case "type":
-			if len(arg) == 2 {
-				data.DocType = arg[1]
-			} else {
-				fmt.Println("argument `type` requires a value, eg `-type=resource`")
-				return 1
-			}
-		case "id":
-			if len(arg) == 2 {
-				data.IDExample = arg[1]
-			} else {
-				fmt.Println("argument `id` requires a quoted value, eg `-id=\"/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1\"`")
-				return 1
-			}
-
-		default:
-			fmt.Printf("unrecognised option %q", arg[0])
-			return 1
-		}
-	}
-
-	if data.Name == "" {
-		fmt.Printf("Error: missing required argument `-name`")
 		return 1
 	}
 
@@ -97,14 +76,14 @@ func (c DocumentCommand) Run(args []string) int {
 }
 
 func (c DocumentCommand) Help() string {
-	return "Not implemented yet..."
+	return "partially there..."
 }
 
 func (c DocumentCommand) Synopsis() string {
 	return "generates documentation from a resource"
 }
 
-func (d DocumentData) generate() error {
+func (d *DocumentData) generate() error {
 	if d.ProviderName == "" {
 		providerName, err := helpers.ProviderName()
 		if err != nil {
@@ -117,15 +96,16 @@ func (d DocumentData) generate() error {
 	}
 
 	schema, err := helpers.ParseProviderJSON(helpers.OpenProviderJSON("/tmp/azurerm-provider-out.json"), d.SnakeName, helpers.DocType(d.DocType))
-	if err != nil {
+	if err != nil || schema == nil {
 		fmt.Printf("[ERROR] reading %s %s from provider JSON", d.DocType, d.Name)
 		return err
 	}
 
 	// terraform marks the id as optional in the output JSON, this makes the template super messy, so we'll flip the bool here
-	tmpID := schema.Block.Attributes["id"]
-	tmpID.Optional = false
-	schema.Block.Attributes["id"] = tmpID
+	if tmpID, ok := schema.Block.Attributes["id"]; ok {
+		tmpID.Optional = false
+		schema.Block.Attributes["id"] = tmpID
+	}
 
 	d.Schema = *schema
 

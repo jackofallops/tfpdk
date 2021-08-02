@@ -11,19 +11,42 @@ import (
 var Commands map[string]cli.CommandFactory
 
 func main() {
-	args := os.Args[1:]
+	os.Exit(realMain(os.Args[1:]))
+}
+
+func realMain(args []string) int {
+	var ui cli.Ui = &cli.ColoredUi{
+		ErrorColor: cli.UiColorRed,
+		WarnColor:  cli.UiColorYellow,
+		InfoColor:  cli.UiColorNone,
+
+		Ui: &cli.BasicUi{
+			Reader:      os.Stdin,
+			Writer:      os.Stdout,
+			ErrorWriter: os.Stderr,
+		},
+	}
+
 	Commands = map[string]cli.CommandFactory{
 		"init": func() (cli.Command, error) {
-			return &commands.InitialiseCommand{}, nil
+			return &commands.InitialiseCommand{
+				Ui: ui,
+			}, nil
 		},
 		"resource": func() (cli.Command, error) {
-			return &commands.ResourceCommand{}, nil
+			return &commands.ResourceCommand{
+				Ui: ui,
+			}, nil
 		},
 		"datasource": func() (cli.Command, error) {
-			return &commands.DataSourceCommand{}, nil
+			return &commands.DataSourceCommand{
+				Ui: ui,
+			}, nil
 		},
 		"document": func() (cli.Command, error) {
-			return &commands.DocumentCommand{}, nil
+			return &commands.DocumentCommand{
+				Ui: ui,
+			}, nil
 		},
 	}
 
@@ -38,6 +61,5 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
-
-	os.Exit(exitStatus)
+	return exitStatus
 }

@@ -12,7 +12,9 @@ import (
 	"github.com/mitchellh/cli"
 )
 
-type DataSourceCommand struct{}
+type DataSourceCommand struct {
+	Ui cli.Ui
+}
 
 var _ cli.Command = DataSourceCommand{}
 
