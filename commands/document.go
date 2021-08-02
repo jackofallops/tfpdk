@@ -88,9 +88,8 @@ func (c DocumentCommand) Run(args []string) int {
 		return 1
 	}
 
-	data.SnakeName = strcase.ToSnake(fmt.Sprintf("%s_%s", data.ProviderName, data.Name))
 	if err := data.generate(); err != nil {
-		fmt.Printf("")
+		fmt.Printf("Failed to generate: %+v", err)
 		return 1
 	}
 
@@ -119,7 +118,7 @@ func (d DocumentData) generate() error {
 
 	schema, err := helpers.ParseProviderJSON(helpers.OpenProviderJSON("/tmp/azurerm-provider-out.json"), d.SnakeName, helpers.DocType(d.DocType))
 	if err != nil {
-		fmt.Printf("[ERROR] reading %s %s from provider JSON", string(d.DocType), d.Name)
+		fmt.Printf("[ERROR] reading %s %s from provider JSON", d.DocType, d.Name)
 		return err
 	}
 
