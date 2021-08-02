@@ -22,6 +22,9 @@ func main() {
 		"datasource": func() (cli.Command, error) {
 			return &commands.DataSourceCommand{}, nil
 		},
+		"document": func() (cli.Command, error) {
+			return &commands.DocumentCommand{}, nil
+		},
 	}
 
 	tfpdk := cli.CLI{

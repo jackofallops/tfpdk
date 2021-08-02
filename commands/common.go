@@ -9,9 +9,12 @@ import (
 )
 
 var TplFuncMap = template.FuncMap{
-	"ToLower": strings.ToLower,
-	"ToTitle": strings.Title,
-	"ToCamel": strcase.ToCamel,
-	"ToSnake": strcase.ToSnake,
-	"TfName":  helpers.TerraformResourceName,
+	"ToLower":             strings.ToLower,
+	"ToTitle":             strings.Title,
+	"ToCamel":             strcase.ToCamel,
+	"ToSnake":             strcase.ToSnake,
+	"TfName":              helpers.TerraformResourceName,
+	"ToString":            helpers.ToString,
+	"ToDelim":             strcase.ToDelimited,
+	"ToDescriptionString": helpers.ToDescriptionString,
 }
