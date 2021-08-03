@@ -37,7 +37,11 @@ func (d *DocumentData) ParseArgs(args []string) (errors []error) {
 	docSet.StringVar(&d.ServicePackage, "servicepackage", "", "The name of the Service Package the resource or data source belongs to")
 	docSet.StringVar(&d.DocType, "type", "", "The type of item to document, one of `resource` or `datasource`")
 	docSet.StringVar(&d.IDExample, "id", "", "An example of the ID this resource has when created (only valid for `-type=resource`)")
-	docSet.Parse(args)
+	err := docSet.Parse(args)
+	if err != nil {
+		errors = append(errors, err)
+		return errors
+	}
 
 	if d.Name == "" {
 		errors = append(errors, fmt.Errorf("required option `-name` missing\n"))
@@ -58,9 +62,7 @@ func (c DocumentCommand) Run(args []string) int {
 		return 1
 	}
 
-	var err []error
-	err = data.ParseArgs(args)
-	if err != nil {
+	if err := data.ParseArgs(args); err != nil {
 		for _, e := range err {
 			c.Ui.Error(e.Error())
 		}
@@ -68,7 +70,7 @@ func (c DocumentCommand) Run(args []string) int {
 	}
 
 	if err := data.generate(); err != nil {
-		fmt.Printf("Failed to generate: %+v", err)
+		c.Ui.Error(fmt.Sprintf("Failed to generate: %+v", err))
 		return 1
 	}
 
@@ -97,7 +99,7 @@ func (d *DocumentData) generate() error {
 
 	schema, err := helpers.ParseProviderJSON(helpers.OpenProviderJSON("/tmp/azurerm-provider-out.json"), d.SnakeName, helpers.DocType(d.DocType))
 	if err != nil || schema == nil {
-		fmt.Printf("[ERROR] reading %s %s from provider JSON", d.DocType, d.Name)
+		fmt.Printf("[DEBUG] reading %s %s from provider JSON", d.DocType, d.Name)
 		return err
 	}
 
@@ -126,7 +128,6 @@ func (d *DocumentData) generate() error {
 
 	defer f.Close()
 
-	//fmt.Printf("[STEBUG] d: %+v", d)
 	err = tpl.Execute(f, d)
 	if err != nil {
 		return err
