@@ -7,20 +7,20 @@ import (
 	"os"
 )
 
-func ParseProviderJSON(input Provider, resourceName string, Type DocType) (resource *ResourceSchema, err error) {
+func ParseProviderJSON(input Provider, resourceName string, docType DocType) (resource *ResourceSchema, err error) {
 	for _, p := range input.ProviderSchemas {
-		switch Type {
+		switch docType {
 		case DocTypeResource:
 			if schema, ok := p.ResourceSchemas[resourceName]; ok {
 				resource = &schema
 			} else {
-				return nil, fmt.Errorf("%s %s not found", Type, resourceName)
+				return nil, fmt.Errorf("%s %s not found", docType, resourceName)
 			}
 		case DocTypeDataSource:
 			if schema, ok := p.DataSourceSchemas[resourceName]; ok {
 				resource = &schema
 			} else {
-				return nil, fmt.Errorf("%s %s not found", Type, resourceName)
+				return nil, fmt.Errorf("%s %s not found", docType, resourceName)
 			}
 		}
 	}
@@ -37,7 +37,7 @@ func OpenProviderJSON(filename string) Provider {
 	byteValue, _ := ioutil.ReadAll(f)
 
 	var result Provider
-	err = json.Unmarshal(byteValue, &result)
+	_ = json.Unmarshal(byteValue, &result)
 
 	return result
 }
