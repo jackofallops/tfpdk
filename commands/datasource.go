@@ -27,12 +27,12 @@ type DataSourceData struct {
 	UseResourceModel bool
 }
 
-func (d DataSourceData) ParseArgs(args []string) (errors []error) {
+func (d *DataSourceData) ParseArgs(args []string) (errors []error) {
 	dsSet := flag.NewFlagSet("datasource", flag.ExitOnError)
 	dsSet.StringVar(&d.Name, "name", "", "(Required) the name of the new Resource, can be in the form resource_name, ResourceName, or resource-name")
 	dsSet.StringVar(&d.ServicePackage, "service-package", "", "(Optional) place the Data Source under the named service package")
-	dsSet.BoolVar(&d.Typed, "typed", false, "(Optional) Generate a Data Source for use with the Typed Resource SDK")
 	dsSet.BoolVar(&d.UseResourceModel, "use-resource-model", false, "(Optional) Use the related resource model for this. Use this if there is an existing Resource for this Data Source that already contains a suitable model for representing the Schema. (Only valid with `-typed`)")
+	dsSet.BoolVar(&d.Typed, "typed", false, "(Optional) Generate a Data Source for use with the Typed Resource SDK")
 	err := dsSet.Parse(args)
 	if err != nil {
 		errors = append(errors, err)
@@ -76,7 +76,7 @@ func (d DataSourceData) generate() error {
 
 	outputPath := ""
 	if d.ServicePackage != "" {
-		outputPath = fmt.Sprintf("%s/internal/services/%s/%s_d_source.go", strings.ToLower(d.ProviderName), strings.ToLower(strcase.ToCamel(d.ServicePackage)), strcase.ToSnake(d.Name))
+		outputPath = fmt.Sprintf("%s/internal/services/%s/%s_data_source.go", strings.ToLower(d.ProviderName), strings.ToLower(strcase.ToCamel(d.ServicePackage)), strcase.ToSnake(d.Name))
 	} else {
 		outputPath = fmt.Sprintf("%s/internal/%s_data_source.go", d.ProviderName, strcase.ToSnake(d.Name))
 	}
