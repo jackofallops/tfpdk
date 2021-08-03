@@ -46,18 +46,18 @@ func (d *ResourceData) ParseArgs(args []string) (errors []error) {
 	return errors
 }
 
-func (r ResourceCommand) Run(args []string) int {
+func (c ResourceCommand) Run(args []string) int {
 	data := &ResourceData{}
 
 	if err := data.ParseArgs(args); err != nil {
 		for _, e := range err {
-			r.Ui.Error(e.Error())
+			c.Ui.Error(e.Error())
 		}
 		return 1
 	}
 
 	if err := data.generate(); err != nil {
-		r.Ui.Error(fmt.Sprintf("generating resource %s: %+v", data.Name, err))
+		c.Ui.Error(fmt.Sprintf("generating resource %s: %+v", data.Name, err))
 		return 1
 	}
 
@@ -95,13 +95,13 @@ func (d ResourceData) generate() error {
 		return err
 	}
 	if err := f.Close(); err != nil {
-		fmt.Printf("failed riting to file: %+v", err.Error())
+		return fmt.Errorf("failed writing to file: %+v", err.Error())
 	}
 
 	return nil
 }
 
-func (r ResourceCommand) Help() string {
+func (c ResourceCommand) Help() string {
 	return `
 Usage: tfpdk resource [options]
 
@@ -112,6 +112,6 @@ $ tfpdk resource -name=MyNewResource -servicepackage=SomeExistingService -typed 
 `
 }
 
-func (r ResourceCommand) Synopsis() string {
+func (c ResourceCommand) Synopsis() string {
 	return "creates boiler-plate resources."
 }

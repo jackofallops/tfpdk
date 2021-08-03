@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"strings"
@@ -18,7 +19,7 @@ type DataSourceCommand struct {
 
 var _ cli.Command = DataSourceCommand{}
 
-type TypedDataSourceData struct {
+type DataSourceData struct {
 	Name             string
 	ProviderName     string
 	ServicePackage   string
@@ -26,122 +27,90 @@ type TypedDataSourceData struct {
 	UseResourceModel bool
 }
 
-func (d DataSourceCommand) Run(args []string) int {
-	data := TypedDataSourceData{
-		Typed:            false,
-		UseResourceModel: false,
-	}
-
-	providerName, err := helpers.ProviderName()
+func (d DataSourceData) ParseArgs(args []string) (errors []error) {
+	dsSet := flag.NewFlagSet("datasource", flag.ExitOnError)
+	dsSet.StringVar(&d.Name, "name", "", "(Required) the name of the new Resource, can be in the form resource_name, ResourceName, or resource-name")
+	dsSet.StringVar(&d.ServicePackage, "service-package", "", "(Optional) place the Data Source under the named service package")
+	dsSet.BoolVar(&d.Typed, "typed", false, "(Optional) Generate a Data Source for use with the Typed Resource SDK")
+	dsSet.BoolVar(&d.UseResourceModel, "use-resource-model", false, "(Optional) Use the related resource model for this. Use this if there is an existing Resource for this Data Source that already contains a suitable model for representing the Schema. (Only valid with `-typed`)")
+	err := dsSet.Parse(args)
 	if err != nil {
-		fmt.Printf("determining provider name: %+v", err)
-		return 1
-	}
-	data.ProviderName = *providerName
-
-	if len(args) == 0 {
-		fmt.Print(d.Help())
-		return 1
+		errors = append(errors, err)
+		return errors
 	}
 
-	for _, v := range args {
-		arg := strings.Split(v, "=")
-		if len(arg) > 2 {
-			fmt.Printf("malformed argument %q", arg)
-			return 1
+	if d.Name == "" {
+		errors = append(errors, fmt.Errorf("required option `-name` missing\n"))
+	}
+
+	return errors
+}
+
+func (c DataSourceCommand) Run(args []string) int {
+	data := &DataSourceData{}
+
+	if err := data.ParseArgs(args); err != nil {
+		for _, e := range err {
+			c.Ui.Error(e.Error())
 		}
-
-		switch strings.ToLower(strings.TrimLeft(arg[0], "-")) {
-		case "help":
-			fmt.Printf(d.Help())
-			return 0
-		case "name":
-			if len(arg) == 2 {
-				data.Name = arg[1]
-			} else {
-				fmt.Println("argument `name` requires a value, eg `-name=some_resource_name`")
-				return 1
-			}
-
-		case "servicepackage":
-			if len(arg) == 2 {
-				data.ServicePackage = arg[1]
-			} else {
-				fmt.Println("argument `servicepackage` requires a value, eg `-servicepackage=some_service_name`")
-				return 1
-			}
-
-		case "typed":
-			data.Typed = true
-
-		case "useresourcemodel":
-			data.UseResourceModel = true
-
-		default:
-			fmt.Printf("unrecognised option %q", arg[0])
-			return 1
-		}
-	}
-
-	if data.Name == "" {
-		fmt.Printf("Error: missing required argument `-name`")
 		return 1
 	}
 
-	tpl := template.Must(template.New("datasource.gotpl").Funcs(TplFuncMap).ParseFS(Templatedir, "templates/datasource.gotpl"))
-
-	outputPath := ""
-	if data.ServicePackage != "" {
-		outputPath = fmt.Sprintf("%s/internal/services/%s/%s_data_source.go", strings.ToLower(data.ProviderName), strings.ToLower(strcase.ToCamel(data.ServicePackage)), strcase.ToSnake(data.Name))
-	} else {
-		outputPath = fmt.Sprintf("%s/internal/%s_data_source.go", data.ProviderName, strcase.ToSnake(data.Name))
-	}
-
-	if _, err := os.Stat(outputPath); err == nil {
-		fmt.Printf("Error: A data source with this name already exists and will not be overwritten. Please remove this file if you wish to regenerate.")
+	if err := data.generate(); err != nil {
+		c.Ui.Error(fmt.Sprintf("generating resource %s: %+v", data.Name, err))
 		return 1
-	}
-
-	f, err := os.Create(outputPath)
-	if err != nil {
-		fmt.Printf("Error: failed opening output resource file for writing: %+v", err.Error())
-		return 1
-	}
-
-	err = tpl.Execute(f, data)
-	if err != nil {
-		fmt.Println(err.Error())
-		return 1
-	}
-	if err := f.Close(); err != nil {
-		fmt.Printf("Error: Writing to file: %+v", err.Error())
 	}
 
 	return 0
 }
 
-func (d DataSourceCommand) Help() string {
-	return fmt.Sprintf(`
-Usage: tfpdk datasource [options]
+func (d DataSourceData) generate() error {
+	if d.ProviderName == "" {
+		providerName, err := helpers.ProviderName()
+		if err != nil {
+			return err
+		}
+		d.ProviderName = *providerName
+	}
+	tpl := template.Must(template.New("datasource.gotpl").Funcs(TplFuncMap).ParseFS(Templatedir, "templates/datasource.gotpl"))
 
-Generates a scaffolded datasource, optionally under a service package for this provider
+	outputPath := ""
+	if d.ServicePackage != "" {
+		outputPath = fmt.Sprintf("%s/internal/services/%s/%s_d_source.go", strings.ToLower(d.ProviderName), strings.ToLower(strcase.ToCamel(d.ServicePackage)), strcase.ToSnake(d.Name))
+	} else {
+		outputPath = fmt.Sprintf("%s/internal/%s_data_source.go", d.ProviderName, strcase.ToSnake(d.Name))
+	}
 
-Options:
+	if _, err := os.Stat(outputPath); err == nil {
+		return fmt.Errorf("a data source with this name already exists and will not be overwritten. Please remove this file if you wish to regenerate it")
+	}
 
--name=string			(Required) the name of the new Resource, can be in the form resource_name, ResourceName, or resource-name
+	f, err := os.Create(outputPath)
+	if err != nil {
+		return fmt.Errorf("failed opening output resource file for writing: %+v", err.Error())
+	}
 
--servicepackage=string		(Optional) place the Data Source under the named service package
+	err = tpl.Execute(f, d)
+	if err != nil {
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return fmt.Errorf("failed writing to file: %+v", err.Error())
+	}
 
--typed				(Optional) Generate a Data Source for use with the Typed Resource SDK
-
--useresourcemodel		(Optional) Use the related resouce model for this. Use this if there is an Existing Resource for this Data Source that already contains a suitable model for representing the Schema.
-
-Example:
- tfpdk datasource -name=MyNewResource -servicepackage=MyExistingService -typed -useresourcemodel
-
-`)
+	return nil
 }
 
-func (d DataSourceCommand) Synopsis() string {
+func (c DataSourceCommand) Help() string {
+	return `
+Usage: tfpdk datasource [options]
+
+Example:
+$ tfpdk datasource -name=MyNewResource -service-package=MyExistingService -typed -use-resource-model
+
+`
+}
+
+func (c DataSourceCommand) Synopsis() string {
 	return "creates boiler-plate Data Sources."
 }

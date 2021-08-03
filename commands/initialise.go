@@ -24,7 +24,6 @@ func (i InitialiseCommand) Run(args []string) int {
 			fmt.Printf("malformed argument %q", arg)
 			return 1
 		}
-
 	}
 
 	return 0
