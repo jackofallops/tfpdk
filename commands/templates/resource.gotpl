@@ -4,8 +4,8 @@ import (
     "context"
     "time"
 
-    "github.com/hashicorp/terraform-provider-{{- ToLower .ProviderName -}}/{{- ToLower .ProviderName -}}/internal/sdk"
-    "github.com/hashicorp/terraform-provider-{{- ToLower .ProviderName -}}/{{- ToLower .ProviderName -}}/internal/tf/pluginsdk"
+    "github.com/hashicorp/terraform-provider-{{- ToLower .ProviderName -}}/internal/sdk"
+    "github.com/hashicorp/terraform-provider-{{- ToLower .ProviderName -}}/internal/tf/pluginsdk"
 )
 
 type {{ToCamel .Name}}Resource struct{}
@@ -91,7 +91,7 @@ func (r {{ToCamel .Name}}Resource) Update() sdk.ResourceFunc {
 import (
     "time"
 
-    "github.com/hashicorp/terraform-provider-{{- ToLower .ProviderName -}}/{{- ToLower .ProviderName -}}/internal/tf/pluginsdk"
+    "github.com/hashicorp/terraform-provider-{{- ToLower .ProviderName -}}/internal/tf/pluginsdk"
 )
 
 func resource{{ToCamel .Name}}() *pluginsdk.Resource {
