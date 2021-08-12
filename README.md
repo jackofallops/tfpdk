@@ -19,6 +19,7 @@ Run from the root of the provider project.
 - [ ] Clients?
 - [ ] Autocomplete?
 - [x] Spike doc generation (just resources for now)
+- [ ] update commands and templates to allow non-hashicorp providers and sources other than github (e.g. import paths)
 
 
 ## Commands

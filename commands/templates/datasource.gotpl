@@ -4,8 +4,8 @@ import (
     "context"
     "time"
 
-    "github.com/terraform-providers/terraform-provider-{{- ToLower .ProviderName -}}/{{- ToLower .ProviderName -}}/internal/sdk"
-    "github.com/terraform-providers/terraform-provider-{{- ToLower .ProviderName -}}/{{- ToLower .ProviderName -}}/internal/tf/pluginsdk"
+    "github.com/hashicorp/terraform-provider-{{- ToLower .ProviderName -}}/{{- ToLower .ProviderName -}}/internal/sdk"
+    "github.com/hashicorp/terraform-provider-{{- ToLower .ProviderName -}}/{{- ToLower .ProviderName -}}/internal/tf/pluginsdk"
 )
 
 type {{ToCamel .Name}}DataSource struct{}
@@ -55,7 +55,7 @@ func (r {{ToCamel .Name}}DataSource) Read() sdk.ResourceFunc {
 import (
     "time"
 
-    "github.com/terraform-providers/terraform-provider-{{- ToLower .ProviderName -}}/{{- ToLower .ProviderName -}}/internal/tf/pluginsdk"
+    "github.com/hashicorp/terraform-provider-{{- ToLower .ProviderName -}}/{{- ToLower .ProviderName -}}/internal/tf/pluginsdk"
     )
 
 func dataSource{{ToCamel .Name}}() *pluginsdk.Resource {
