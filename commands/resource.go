@@ -76,9 +76,9 @@ func (d ResourceData) generate() error {
 	// output file - Note we assume that the PATH to the file already exists, having been through init and, optionally, service package creation
 	outputPath := ""
 	if d.ServicePackage != "" {
-		outputPath = fmt.Sprintf("%s/internal/services/%s/%s_resource.go", strings.ToLower(d.ProviderName), strings.ToLower(strcase.ToCamel(d.ServicePackage)), strcase.ToSnake(d.Name))
+		outputPath = fmt.Sprintf("internal/services/%s/%s_resource.go", strings.ToLower(strcase.ToCamel(d.ServicePackage)), strcase.ToSnake(d.Name))
 	} else {
-		outputPath = fmt.Sprintf("%s/internal/%s_resource.go", d.ProviderName, strcase.ToSnake(d.Name))
+		outputPath = fmt.Sprintf("internal/%s_resource.go", strcase.ToSnake(d.Name))
 	}
 
 	if _, err := os.Stat(outputPath); err == nil {

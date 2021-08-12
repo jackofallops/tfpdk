@@ -76,9 +76,9 @@ func (d DataSourceData) generate() error {
 
 	outputPath := ""
 	if d.ServicePackage != "" {
-		outputPath = fmt.Sprintf("%s/internal/services/%s/%s_data_source.go", strings.ToLower(d.ProviderName), strings.ToLower(strcase.ToCamel(d.ServicePackage)), strcase.ToSnake(d.Name))
+		outputPath = fmt.Sprintf("internal/services/%s/%s_data_source.go", strings.ToLower(strcase.ToCamel(d.ServicePackage)), strcase.ToSnake(d.Name))
 	} else {
-		outputPath = fmt.Sprintf("%s/internal/%s_data_source.go", d.ProviderName, strcase.ToSnake(d.Name))
+		outputPath = fmt.Sprintf("internal/%s_data_source.go", strcase.ToSnake(d.Name))
 	}
 
 	if _, err := os.Stat(outputPath); err == nil {

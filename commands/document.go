@@ -115,7 +115,7 @@ func (d *DocumentData) generate() error {
 
 	outputPath := ""
 	if d.ServicePackage != "" {
-		outputPath = fmt.Sprintf("%s/internal/services/%s/docs/%s.md", strings.ToLower(d.ProviderName), strings.ToLower(strcase.ToCamel(d.ServicePackage)), d.SnakeName)
+		outputPath = fmt.Sprintf("internal/services/%s/docs/%s.md", strings.ToLower(strcase.ToCamel(d.ServicePackage)), d.SnakeName)
 	} else {
 		outputPath = fmt.Sprintf("website/docs/%s.md", d.SnakeName)
 	}
