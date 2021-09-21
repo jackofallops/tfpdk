@@ -97,7 +97,10 @@ func (d *DocumentData) generate() error {
 		d.SnakeName = strcase.ToSnake(fmt.Sprintf("%s_%s", d.ProviderName, d.Name))
 	}
 
-	schema, err := helpers.ParseProviderJSON(helpers.OpenProviderJSON("/tmp/azurerm-provider-out.json"), d.SnakeName, helpers.DocType(d.DocType))
+	//provider := helpers.OpenProviderJSON("/tmp/provider-out.json")
+	provider := helpers.GetTerraformSchemaJSON()
+
+	schema, err := helpers.ParseProviderJSON(provider, d.ProviderName, d.SnakeName, helpers.DocType(d.DocType))
 	if err != nil || schema == nil {
 		fmt.Printf("[DEBUG] reading %s %s from provider JSON", d.DocType, d.Name)
 		return err
@@ -117,7 +120,7 @@ func (d *DocumentData) generate() error {
 	if d.ServicePackage != "" {
 		outputPath = fmt.Sprintf("internal/services/%s/docs/%s.md", strings.ToLower(strcase.ToCamel(d.ServicePackage)), d.SnakeName)
 	} else {
-		outputPath = fmt.Sprintf("website/docs/%s.md", d.SnakeName)
+		outputPath = fmt.Sprintf("docs/%s.md", d.SnakeName)
 	}
 
 	f, err := os.Create(outputPath)

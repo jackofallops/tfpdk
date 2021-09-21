@@ -8,7 +8,7 @@ const DocTypeDataSource DocType = "datasource"
 const DocTypeResource DocType = "resource"
 
 type Provider struct {
-	Version         string
+	Version         string                    `json:"format_version"`
 	ProviderSchemas map[string]ProviderSchema `json:"provider_schemas,omitempty"`
 }
 
