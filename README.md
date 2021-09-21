@@ -3,13 +3,15 @@ Terraform Provider Development Kit
  
 NOTE: Expects to be run from the root of a validly named Terraform provider e.g. `./terraform-provider-myprovider`
 
-WARNING: currently needs the json output from `terraform providers schema -json` for the azurerm provider in `/tmp/azurerm-provider-out.json` 
+~~WARNING: currently needs the json output from `terraform providers schema -json` for the azurerm provider in `/tmp/azurerm-provider-out.json`~~ 
+Relies on a locally installed terraform binary and appropriately configured [dev overrides file](https://www.terraform.io/docs/cli/config/config-file.html#development-overrides-for-provider-developers). This 
+allows the Terraform binary to skip the `init` step by informing it where your compiled provider binary can be found.
 
 Run from the root of the provider project.
 
 ## TODO
 - [x] untyped resource template
-- [ ] `go fmt` outputs
+- [x] `go fmt` outputs
 - [ ] Add new resources / data sources to appropriate registration
 - [x] typed and untyped Data Sources
 - [ ] init a new provider - git clone [scaffold](https://github.com/hashicorp/terraform-provider-scaffolding)?
