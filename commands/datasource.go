@@ -98,6 +98,10 @@ func (d DataSourceData) generate() error {
 		return fmt.Errorf("failed writing to file: %+v", err.Error())
 	}
 
+	if err := helpers.GoFmt(outputPath); err != nil {
+		return err
+	}
+
 	return nil
 }
 

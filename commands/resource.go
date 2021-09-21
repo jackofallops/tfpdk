@@ -98,6 +98,11 @@ func (d ResourceData) generate() error {
 		return fmt.Errorf("failed writing to file: %+v", err.Error())
 	}
 
+	// Make sure the generated template complies with the local Go's view of how it should be fmt'd
+	if err := helpers.GoFmt(outputPath); err != nil {
+		return err
+	}
+
 	return nil
 }
 

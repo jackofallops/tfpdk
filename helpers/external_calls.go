@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fmt"
 	"os/exec"
 )
 
@@ -12,4 +13,12 @@ func CallTerraform(opts ...string) ([]byte, error) {
 	}
 
 	return out, nil
+}
+
+func GoFmt(file string) error {
+	cmd := exec.Command("gofmt", "-w", fmt.Sprintf("./%s", file))
+	if _, err := cmd.Output(); err != nil {
+		return err
+	}
+	return nil
 }
