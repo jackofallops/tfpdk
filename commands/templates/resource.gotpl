@@ -17,7 +17,7 @@ type {{ToCamel .Name}}Model struct {
 {{if .HasUpdate}}var _ sdk.ResourceWithUpdate = {{else}}var _ sdk.Resource = {{end}}{{ToCamel .Name}}Resource{}
 
 func (r {{ToCamel .Name}}Resource) ModelObject() interface{} {
-	return {{ToCamel .Name}}Model{}
+	return &{{ToCamel .Name}}Model{}
 }
 
 func (r {{ToCamel .Name}}Resource) ResourceType() string {

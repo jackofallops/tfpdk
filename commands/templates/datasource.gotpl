@@ -17,7 +17,7 @@ type {{ToCamel .Name}}Model struct {
 var _ sdk.DataSource = {{ToCamel .Name}}DataSource{}
 
 func (r {{ToCamel .Name}}DataSource) ModelObject() interface{} {
-    return {{ToCamel .Name}}Model{}
+    return &{{ToCamel .Name}}Model{}
 }
 
 func (r {{ToCamel .Name}}DataSource) ResourceType() string {
