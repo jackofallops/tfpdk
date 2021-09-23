@@ -6,9 +6,12 @@ subcategory: "TODO"
 layout: "{{.ProviderName}}"
 page_title: "{{.ProviderName}}: {{.Name}}"
 description: |-
-Manages a {{ToDescriptionString .Name}}.
+  Manages {{ToDescriptionString .Name}}.
 ---
-# Manages a {{ToDescriptionString .Name}}.
+# {{.ProviderName}}_{{.Name}}
+
+Manages {{ToDescriptionString .Name}}.
+
 ```hcl
 {{- template "usage_example" .}}
 ```
@@ -17,7 +20,7 @@ Manages a {{ToDescriptionString .Name}}.
 
 The following arguments are supported:
 {{range $name, $value := .Schema.Block.Attributes }}{{- if $value.Required}}
-* `{{$name}}` - (Required) {{$value.Description}}{{end -}}
+* `{{$name}}` - (Required) {{$value.Description}}{{end -}}{{- if $value.ForceNew}}Changing this forces a new resource to be created.{{end -}}
 {{end}}
 
 ---
@@ -25,8 +28,8 @@ The following arguments are supported:
 * `{{$name}}` - (Optional) {{$value.Description}}
 {{end -}}{{- /* end if $value.Optional */ -}}
 {{end}}
-
 ## Attributes Reference
+
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the {{ToDescriptionString .Name}}
@@ -34,8 +37,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `{{$name}}` - {{$value.Description}}
 {{end -}}
 {{end -}}{{- /* end if and ($value.Computed) (and (not $value.Required) (not $value.Optional)) */ -}}
-{{end -}}
-
+{{end}}
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

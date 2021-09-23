@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -27,5 +28,11 @@ func ToString(value interface{}) string {
 }
 
 func ToDescriptionString(input string) string {
-	return strings.Title(strcase.ToDelimited(input, ' '))
+	prefix := "a"
+	vowel, _ := regexp.Match(input[0:0], []byte{})
+
+	if vowel {
+		prefix = "an"
+	}
+	return fmt.Sprintf("%s %s", prefix, strings.Title(strcase.ToDelimited(input, ' ')))
 }
