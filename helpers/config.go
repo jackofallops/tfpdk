@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"os"
 
@@ -16,6 +15,7 @@ const (
 type Configuration struct {
 	ServicePackagesPath   string `hcl:"service_packages_path,optional"`
 	DocsPath              string `hcl:"docs_path,optional"`
+	ProviderGithubOrg     string `hcl:"provider_github_org,optional"`
 	ResourceDocsDirname   string `hcl:"resource_docs_directory_name,optional"`
 	DataSourceDocsDirname string `hcl:"data_source_docs_directory_name,optional"`
 	TypedSDK              bool   `hcl:"use_typed_sdk,optional"`
@@ -26,6 +26,7 @@ type Configuration struct {
 func LoadConfig() *Configuration {
 	config := Configuration{
 		ServicePackagesPath:   "internal/services",
+		ProviderGithubOrg:     "hashicorp",
 		DocsPath:              "docs",
 		ResourceDocsDirname:   "r",
 		DataSourceDocsDirname: "d",
@@ -37,7 +38,7 @@ func LoadConfig() *Configuration {
 		if err != nil {
 			log.Printf("Failed to load configuration: %s", err)
 		}
-		fmt.Printf("Using configuration %+v", config)
+		// fmt.Printf("Using configuration %+v", config)
 	}
 
 	return &config

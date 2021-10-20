@@ -52,6 +52,8 @@ func (i InitialiseCommand) Run(args []string) int {
 		return 1
 	}
 
+	// TODO - create config file?
+
 	return 0
 }
 

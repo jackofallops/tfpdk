@@ -4,16 +4,12 @@ import (
     "context"
     "time"
 
-    "github.com/hashicorp/terraform-provider-{{- ToLower .ProviderName -}}/internal/sdk"
-    "github.com/hashicorp/terraform-provider-{{- ToLower .ProviderName -}}/internal/tf/pluginsdk"
+    "github.com/{{- ToLower .Config.ProviderGithubOrg -}}/terraform-provider-{{- ToLower .ProviderName -}}/internal/sdk"
+    "github.com/{{- ToLower .Config.ProviderGithubOrg -}}/terraform-provider-{{- ToLower .ProviderName -}}/internal/tf/pluginsdk"
 )
 
 type {{ToCamel .Name}}DataSource struct{}
-{{if not .UseResourceModel}}
-type {{ToCamel .Name}}Model struct {
-    // TODO - Schema in Go Types format here
-}
-{{end}}
+
 var _ sdk.DataSource = {{ToCamel .Name}}DataSource{}
 
 func (r {{ToCamel .Name}}DataSource) ModelObject() interface{} {
@@ -55,7 +51,7 @@ func (r {{ToCamel .Name}}DataSource) Read() sdk.ResourceFunc {
 import (
     "time"
 
-    "github.com/hashicorp/terraform-provider-{{- ToLower .ProviderName -}}/internal/tf/pluginsdk"
+    "github.com/{{- ToLower .Config.ProviderGithubOrg -}}/terraform-provider-{{- ToLower .ProviderName -}}/internal/tf/pluginsdk"
     )
 
 func dataSource{{ToCamel .Name}}() *pluginsdk.Resource {

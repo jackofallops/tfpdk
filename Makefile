@@ -15,6 +15,6 @@ goimports:
 	find . -name '*.go' | grep -v vendor | xargs goimports -w
 
 lint:
-	golangci-lint ./...
+	golangci-lint run ./...
 
-.PHONY: tools fmt goimports
+.PHONY: tools fmt goimports lint

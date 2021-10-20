@@ -28,6 +28,7 @@ type ResourceData struct {
 	ProviderName   string
 	ServicePackage string
 	Typed          bool
+	Config         *helpers.Configuration
 }
 
 func (d *ResourceData) ParseArgs(args []string) (errors []error) {
@@ -50,7 +51,9 @@ func (d *ResourceData) ParseArgs(args []string) (errors []error) {
 }
 
 func (c ResourceCommand) Run(args []string) int {
-	data := &ResourceData{}
+	data := &ResourceData{
+		Config: config,
+	}
 	if err := data.ParseArgs(args); err != nil {
 		for _, e := range err {
 			c.Ui.Error(e.Error())

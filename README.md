@@ -1,11 +1,12 @@
 # tfpdk
 Terraform Provider Development Kit
+
+DISCLAIMER: The author primarily works on the [AzureRM Provider](https://github.com/hashicorp/terraform-provider-azurerm) so this tool is *heavily* biased towards the code styles and requirements of that provider currently.  Future development will look to genericise the output (eventually 😜) 
  
 NOTE: Expects to be run from the root of a validly named Terraform provider e.g. `./terraform-provider-myprovider`
 
-~~WARNING: currently needs the json output from `terraform providers schema -json` for the azurerm provider in `/tmp/azurerm-provider-out.json`~~ 
-Relies on a locally installed terraform binary and appropriately configured [dev overrides file](https://www.terraform.io/docs/cli/config/config-file.html#development-overrides-for-provider-developers). This 
-allows the Terraform binary to skip the `init` step by informing it where your compiled provider binary can be found. (you still need a local .tf file with your provider declared though, sorry!)
+NOTE: Relies on a locally installed terraform binary and appropriately configured [dev overrides file](https://www.terraform.io/docs/cli/config/config-file.html#development-overrides-for-provider-developers). This 
+allows the Terraform binary to skip the `init` step by informing it where your compiled provider binary can be found. (you still currently need a local .tf file with your [provider configured](https://www.terraform.io/docs/language/providers/configuration.html) though, sorry!)
 
 Run from the root of the provider project.
 
@@ -22,7 +23,7 @@ Run from the root of the provider project.
 - [ ] Autocomplete?
 - [x] Spike doc generation (just resources for now)
 - [ ] migrate to plugin sdk to read schema directly for doc gen as Terraform's JSON output lacks necessary detail. (e.g. timeouts, ForceNew flags etc)
-- [ ] update commands and templates to allow non-hashicorp providers and sources other than github (e.g. import paths)
+- [x] update commands and templates to allow non-hashicorp providers ~~and sources other than github~~ (e.g. import paths)
 
 
 ## Commands

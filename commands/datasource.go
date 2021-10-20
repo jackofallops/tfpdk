@@ -20,20 +20,18 @@ type DataSourceCommand struct {
 var _ cli.Command = DataSourceCommand{}
 
 type DataSourceData struct {
-	Name             string
-	ProviderName     string
-	ServicePackage   string
-	Typed            bool
-	UseResourceModel bool
+	Name           string
+	ProviderName   string
+	ServicePackage string
+	Typed          bool
+	Config         *helpers.Configuration
 }
 
 func (d *DataSourceData) ParseArgs(args []string) (errors []error) {
-	d.Typed = config.TypedSDK
 	dsSet := flag.NewFlagSet("datasource", flag.ExitOnError)
 	dsSet.StringVar(&d.Name, "name", "", "(Required) the name of the new Resource, can be in the form resource_name, ResourceName, or resource-name")
 	dsSet.StringVar(&d.ServicePackage, "service-package", "", "(Optional) place the Data Source under the named service package")
-	dsSet.BoolVar(&d.UseResourceModel, "use-resource-model", false, "(Optional) Use the related resource model for this. Use this if there is an existing Resource for this Data Source that already contains a suitable model for representing the Schema. (Only valid with `-typed`)")
-	dsSet.BoolVar(&d.Typed, "typed", false, "(Optional) Generate a Data Source for use with the Typed Resource SDK")
+	dsSet.BoolVar(&d.Typed, "typed", config.TypedSDK, "(Optional) Generate a Data Source for use with the Typed Resource SDK")
 	err := dsSet.Parse(args)
 	if err != nil {
 		errors = append(errors, err)
@@ -48,7 +46,9 @@ func (d *DataSourceData) ParseArgs(args []string) (errors []error) {
 }
 
 func (c DataSourceCommand) Run(args []string) int {
-	data := &DataSourceData{}
+	data := &DataSourceData{
+		Config: config,
+	}
 
 	if err := data.ParseArgs(args); err != nil {
 		for _, e := range err {
