@@ -1,5 +1,5 @@
 service_packages_path           = "{{- .ServicePackagesPath -}}"
-provider_github_org             = "{{- .Config.ProviderGithubOrg -}}"
+provider_github_org             = "{{- .ProviderGithubOrg -}}"
 docs_path                       = "{{- .DocsPath -}}"
 resource_docs_directory_name    = "{{- .ResourceDocsDirname -}}"
 data_source_docs_directory_name = "{{- .DataSourceDocsDirname -}}"

@@ -54,3 +54,12 @@ Will create the following path `{providername}/internal/services/SomeCloudServic
 ```shell
 tfpdk document -type resource -name ShinyNewService -id "00000000-0000-0000-0000-000000000000"
 ```
+
+## Command Documentation
+`tfpdk [command]`
+* [init](docs/init.md)
+* [config](docs/config.md)
+* [servicepackage](docs/servicepackage.md)
+* [resource](docs/resource.md)
+* [datasource](docs/datasource.md)
+* [document](docs/document.md)
