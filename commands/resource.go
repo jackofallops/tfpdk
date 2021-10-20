@@ -20,8 +20,6 @@ type ResourceCommand struct {
 
 var _ cli.Command = ResourceCommand{}
 
-var config = &helpers.Configuration{}
-
 type ResourceData struct {
 	HasUpdate      bool
 	Name           string

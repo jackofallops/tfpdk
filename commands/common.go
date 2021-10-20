@@ -8,6 +8,8 @@ import (
 	"github.com/jackofallops/tfpdk/helpers"
 )
 
+var config = &helpers.Configuration{}
+
 var TplFuncMap = template.FuncMap{
 	"ToLower":             strings.ToLower,
 	"ToTitle":             strings.Title,
