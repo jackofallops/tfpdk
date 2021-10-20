@@ -18,3 +18,7 @@ var TplFuncMap = template.FuncMap{
 	"ToDelim":             strcase.ToDelimited,
 	"ToDescriptionString": helpers.ToDescriptionString,
 }
+
+func init() {
+	config = helpers.LoadConfig()
+}

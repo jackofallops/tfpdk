@@ -48,6 +48,11 @@ func realMain(args []string) int {
 				Ui: ui,
 			}, nil
 		},
+		"config": func() (cli.Command, error) {
+			return &commands.GenConfigCommand{
+				Ui: ui,
+			}, nil
+		},
 	}
 
 	tfpdk := cli.CLI{

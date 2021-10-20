@@ -81,7 +81,7 @@ func (r {{ToCamel .Name}}Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			// TODO - Delete Func
+			// TODO - Update Func
 			return nil
 		},
 	}

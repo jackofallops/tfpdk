@@ -28,6 +28,7 @@ type DataSourceData struct {
 }
 
 func (d *DataSourceData) ParseArgs(args []string) (errors []error) {
+	d.Typed = config.TypedSDK
 	dsSet := flag.NewFlagSet("datasource", flag.ExitOnError)
 	dsSet.StringVar(&d.Name, "name", "", "(Required) the name of the new Resource, can be in the form resource_name, ResourceName, or resource-name")
 	dsSet.StringVar(&d.ServicePackage, "service-package", "", "(Optional) place the Data Source under the named service package")
@@ -76,7 +77,7 @@ func (d DataSourceData) generate() error {
 
 	outputPath := ""
 	if d.ServicePackage != "" {
-		outputPath = fmt.Sprintf("internal/services/%s/%s_data_source.go", strings.ToLower(strcase.ToCamel(d.ServicePackage)), strcase.ToSnake(d.Name))
+		outputPath = fmt.Sprintf("%s/%s/%s_data_source.go", config.ServicePackagesPath, strings.ToLower(strcase.ToCamel(d.ServicePackage)), strcase.ToSnake(d.Name))
 	} else {
 		outputPath = fmt.Sprintf("internal/%s_data_source.go", strcase.ToSnake(d.Name))
 	}

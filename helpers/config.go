@@ -1,0 +1,44 @@
+package helpers
+
+import (
+	"errors"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/hashicorp/hcl/v2/hclsimple"
+)
+
+const (
+	ConfigFileName = ".tfpdk.hcl"
+)
+
+type Configuration struct {
+	ServicePackagesPath   string `hcl:"service_packages_path,optional"`
+	DocsPath              string `hcl:"docs_path,optional"`
+	ResourceDocsDirname   string `hcl:"resource_docs_directory_name,optional"`
+	DataSourceDocsDirname string `hcl:"data_source_docs_directory_name,optional"`
+	TypedSDK              bool   `hcl:"use_typed_sdk,optional"`
+}
+
+// LoadConfig loads the configuration file if present to allow users to override various settings in the
+// tool, such as path to services, docs and any SDK options.
+func LoadConfig() *Configuration {
+	config := Configuration{
+		ServicePackagesPath:   "internal/services",
+		DocsPath:              "docs",
+		ResourceDocsDirname:   "r",
+		DataSourceDocsDirname: "d",
+		TypedSDK:              false,
+	}
+	info, err := os.Stat(ConfigFileName)
+	if !errors.Is(err, os.ErrNotExist) && !info.IsDir() {
+		err := hclsimple.DecodeFile(ConfigFileName, nil, &config)
+		if err != nil {
+			log.Printf("Failed to load configuration: %s", err)
+		}
+		fmt.Printf("Using configuration %+v", config)
+	}
+
+	return &config
+}

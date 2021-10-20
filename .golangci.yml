@@ -1,0 +1,35 @@
+run:
+  modules-download-mode: vendor
+
+issues:
+  max-per-linter: 0
+  max-same-issues: 0
+
+linters:
+  disable-all: true
+  enable:
+    - asciicheck
+    - deadcode
+    - errcheck
+    - gocritic
+    - gofmt
+    - goimports
+    - gosimple
+    - govet
+    - ineffassign
+    - nakedret
+    - misspell
+    - staticcheck
+    - structcheck
+    - typecheck
+    - unused
+    - unconvert
+    - unparam
+    - varcheck
+    - vet
+    - vetshadow
+    - whitespace
+
+linters-settings:
+  nakedret:
+    max-func-lines: 40

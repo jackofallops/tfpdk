@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -19,6 +20,8 @@ type ResourceCommand struct {
 
 var _ cli.Command = ResourceCommand{}
 
+var config = &helpers.Configuration{}
+
 type ResourceData struct {
 	HasUpdate      bool
 	Name           string
@@ -32,7 +35,7 @@ func (d *ResourceData) ParseArgs(args []string) (errors []error) {
 	resourceSet.StringVar(&d.Name, "name", "", "(Required) the name of the new resource, can be in the form resource_name, ResourceName, or resource-name")
 	resourceSet.StringVar(&d.ServicePackage, "servicepackage", "", "(Optional) place the resource under the named service package")
 	resourceSet.BoolVar(&d.HasUpdate, "has-update", true, "(Optional) Use if the new resource supports updating in place. Note if not used all schema properties must be 'ForceNew: true'")
-	resourceSet.BoolVar(&d.Typed, "typed", false, "(Optional) Generate a resource for use with the Typed Resource SDK")
+	resourceSet.BoolVar(&d.Typed, "typed", config.TypedSDK, "(Optional) Generate a resource for use with the Typed Resource SDK")
 	err := resourceSet.Parse(args)
 	if err != nil {
 		errors = append(errors, err)
@@ -48,7 +51,6 @@ func (d *ResourceData) ParseArgs(args []string) (errors []error) {
 
 func (c ResourceCommand) Run(args []string) int {
 	data := &ResourceData{}
-
 	if err := data.ParseArgs(args); err != nil {
 		for _, e := range err {
 			c.Ui.Error(e.Error())
@@ -73,10 +75,16 @@ func (d ResourceData) generate() error {
 
 	tpl := template.Must(template.New("resource.gotpl").Funcs(TplFuncMap).ParseFS(Templatedir, "templates/resource.gotpl"))
 
-	// output file - Note we assume that the PATH to the file already exists, having been through init and, optionally, service package creation
 	outputPath := ""
 	if d.ServicePackage != "" {
-		outputPath = fmt.Sprintf("internal/services/%s/%s_resource.go", strings.ToLower(strcase.ToCamel(d.ServicePackage)), strcase.ToSnake(d.Name))
+		path := fmt.Sprintf("%s/%s", config.ServicePackagesPath, d.ServicePackage)
+		_, err := os.Stat(path)
+		if errors.Is(err, os.ErrNotExist) {
+			if err := os.MkdirAll(path, 0755); err != nil {
+				return err
+			}
+		}
+		outputPath = fmt.Sprintf("%s/%s/%s_resource.go", config.ServicePackagesPath, strings.ToLower(strcase.ToCamel(d.ServicePackage)), strcase.ToSnake(d.Name))
 	} else {
 		outputPath = fmt.Sprintf("internal/%s_resource.go", strcase.ToSnake(d.Name))
 	}

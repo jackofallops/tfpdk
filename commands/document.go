@@ -8,7 +8,6 @@ import (
 	"text/template"
 
 	"github.com/iancoleman/strcase"
-
 	"github.com/jackofallops/tfpdk/helpers"
 	"github.com/mitchellh/cli"
 )
@@ -78,7 +77,7 @@ func (c DocumentCommand) Run(args []string) int {
 }
 
 func (c DocumentCommand) Help() string {
-	return "partially there..."
+	return "TODO"
 }
 
 func (c DocumentCommand) Synopsis() string {
@@ -97,7 +96,7 @@ func (d *DocumentData) generate() error {
 		d.SnakeName = strcase.ToSnake(fmt.Sprintf("%s_%s", d.ProviderName, d.Name))
 	}
 
-	//provider := helpers.OpenProviderJSON("/tmp/provider-out.json")
+	// provider := helpers.OpenProviderJSON("/tmp/provider-out.json")
 	provider := helpers.GetTerraformSchemaJSON()
 
 	schema, err := helpers.ParseProviderJSON(provider, d.ProviderName, d.SnakeName, helpers.DocType(d.DocType))

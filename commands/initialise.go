@@ -69,7 +69,9 @@ func (d InitData) exec() error {
 		return fmt.Errorf("cloning: %+v", err)
 	}
 
-	r.DeleteRemote("origin")
+	if err = r.DeleteRemote("origin"); err != nil {
+		return err
+	}
 
 	return nil
 }
