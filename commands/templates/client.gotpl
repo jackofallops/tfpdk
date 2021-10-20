@@ -1,0 +1,21 @@
+package client
+
+import (
+	// Example
+	// "github.com/Azure/azure-sdk-for-go/services/{{- .ServicePackage -}}/mgmt/TODO/{{- .ServicePackage -}}"
+	"github.com/{{- ToLower .Config.ProviderGithubOrg -}}/terraform-provider-{{- ToLower .ProviderName -}}/internal/common"
+)
+
+type Client struct {
+	// Example
+	// BaseClient *{{- .ServicePackage -}}.BaseClient
+}
+
+func NewClient(o *common.ClientOptions) *Client {
+
+	return &Client{
+		// Example:
+		// baseClient := {{- .ServicePackage -}}.NewWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+		// o.ConfigureClient(&baseClient.Client, o.ResourceManagerAuthorizer)
+	}
+}

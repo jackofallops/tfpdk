@@ -1,0 +1,33 @@
+package {{ .ServicePackage}}
+
+import (
+	"github.com/{{- ToLower .Config.ProviderGithubOrg -}}/terraform-provider-{{- ToLower .ProviderName -}}/internal/sdk"
+	"github.com/{{- ToLower .Config.ProviderGithubOrg -}}/terraform-provider-{{- ToLower .ProviderName -}}/internal/tf/pluginsdk"
+)
+
+var _ sdk.TypedServiceRegistration = Registration{}
+
+type Registration struct{}
+
+
+func (r Registration) WebsiteCategories() []string {
+	return nil // Deprecated - will be removed in a future release
+}
+
+func (r Registration) Name() string {
+	return "{{ ToCamel .ServicePackage}}"
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{
+		// TODO - Data Source types go here, e.g.
+		// MyServiceDataSource{},
+	}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		// TODO - Data Source types go here, e.g.
+		// MyServiceResource{},
+	}
+}

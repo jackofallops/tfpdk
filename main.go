@@ -53,6 +53,11 @@ func realMain(args []string) int {
 				Ui: ui,
 			}, nil
 		},
+		"servicepackage": func() (cli.Command, error) {
+			return &commands.ServicePackageCommand{
+				Ui: ui,
+			}, nil
+		},
 	}
 
 	tfpdk := cli.CLI{
