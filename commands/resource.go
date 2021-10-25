@@ -112,7 +112,8 @@ func (d ResourceData) generate() error {
 		return err
 	}
 
-	_ = helpers.UpdateRegistration(config.ServicePackagesPath+"/"+d.ServicePackage, d.Name, helpers.TypeResource, helpers.Register, d.Typed)
+	//_ = helpers.UpdateRegistration(config.ServicePackagesPath+"/"+d.ServicePackage, d.Name, helpers.TypeResource, helpers.Register, d.Typed)
+	_ = helpers.UpdateRegistrationByNode(config.ServicePackagesPath+"/"+d.ServicePackage, d.Name, helpers.TypeResource, helpers.Register, d.Typed)
 
 	return nil
 }
