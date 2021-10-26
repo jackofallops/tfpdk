@@ -125,7 +125,8 @@ func (d *DocumentData) generate() error {
 	//	outputPath = fmt.Sprintf("internal/services/%s/docs/%s.md", strings.ToLower(strcase.ToCamel(d.ServicePackage)), d.SnakeName)
 	//} else {
 	//}
-	outputPath = fmt.Sprintf("%s/%s.md", outputPath, strings.TrimPrefix(d.SnakeName, "azurerm_"))
+	providerPrefix := fmt.Sprintf("%s_", d.ProviderName)
+	outputPath = fmt.Sprintf("%s/%s.md", outputPath, strings.TrimPrefix(d.SnakeName, providerPrefix))
 
 	f, err := os.Create(outputPath)
 	if err != nil {

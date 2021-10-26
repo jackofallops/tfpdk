@@ -1,3 +1,4 @@
+provider_name                   = "{{- .ProviderName -}}"
 service_packages_path           = "{{- .ServicePackagesPath -}}"
 provider_github_org             = "{{- .ProviderGithubOrg -}}"
 docs_path                       = "{{- .DocsPath -}}"

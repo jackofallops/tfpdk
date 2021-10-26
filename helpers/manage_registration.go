@@ -28,16 +28,7 @@ const (
 	TypeDatasource resourceType = "datasource"
 )
 
-type astKey struct {
-	KeyValuePos int
-	KeyKind     token.Token
-	KeyValue    string
-	ValFun      string
-}
-
 var resourceNameToAdd string
-
-//var fSet *token.FileSet
 
 // UpdateRegistration modifies the `registration.go` file to add (or remove?) items from the relevant blocks when
 // a user adds (or removes?) a reource or datasource via `tfpdk resource` or `tfpdk datasource`
@@ -48,19 +39,7 @@ var resourceNameToAdd string
 // op = one of Register or Unregister // TODO - removing is a future concern so not yet implemented
 // isTyped = true if the resources uses the TypedSDK
 func UpdateRegistration(servicePackagePath string, resourceName string, resource resourceType, _ operation, isTyped bool) error {
-	if strings.EqualFold(string(resource), "datasource") {
-		if isTyped {
-			resourceNameToAdd = resourceName + "DataSource"
-		} else {
-			resourceNameToAdd = resourceName
-		}
-	} else {
-		if isTyped {
-			resourceNameToAdd = resourceName + "Resource"
-		} else {
-			resourceNameToAdd = resourceName
-		}
-	}
+	resourceNameToAdd = getResourceNameToAdd(resourceName, resource, isTyped)
 	fSet := token.NewFileSet()
 	regFilePath := fmt.Sprintf("%s/registration.go", strings.TrimSuffix(servicePackagePath, "/"))
 	regFile, err := parser.ParseFile(fSet, regFilePath, nil, 0)
@@ -122,6 +101,20 @@ func normaliseNodeName(input resourceType, isTyped bool) string {
 	return "SupportedResources"
 }
 
+func getResourceNameToAdd(name string, res resourceType, isTyped bool) string {
+	if strings.EqualFold(string(res), "datasource") {
+		if isTyped {
+			return name + "DataSource"
+		}
+	} else {
+		if isTyped {
+			return name + "Resource"
+		}
+	}
+
+	return name
+}
+
 func newUnTypedASTReturnEntry(key string, value string, pos int) *ast.KeyValueExpr {
 	return &ast.KeyValueExpr{
 		Key: &ast.BasicLit{
@@ -138,11 +131,12 @@ func newUnTypedASTReturnEntry(key string, value string, pos int) *ast.KeyValueEx
 }
 
 func untypedAppendResourceToRegistrationBlock() astutil.ApplyFunc {
+	config := LoadConfig()
 	return func(c *astutil.Cursor) bool {
 		m := c.Node()
 		if t, ok := m.(*ast.KeyValueExpr); ok {
 			alreadyPresent := false
-			snakeName := TerraformResourceName("azurerm", resourceNameToAdd)
+			snakeName := TerraformResourceName(config.ProviderName, resourceNameToAdd)
 			if strings.Trim(t.Key.(*ast.BasicLit).Value, "\"") == snakeName {
 				alreadyPresent = true
 			}
