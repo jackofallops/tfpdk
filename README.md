@@ -83,6 +83,25 @@ func (r Registration) Resources() []sdk.Resource {
 tfpdk document -type resource -name ShinyNewService -id "00000000-0000-0000-0000-000000000000"
 ```
 
+### Generate a Local config to set options and paths
+
+```shell
+tfpdk config
+```
+will create `.tfpdk.hcl` in the root of the provider, which can be updated to configure provider specifics that may differ from the defaults. (by "defaults", I mean what we use on AzureRM), example output:
+
+```
+provider_name                   = "azurerm"
+service_packages_path           = "internal/services"
+provider_github_org             = "hashicorp"
+docs_path                       = "docs"
+resource_docs_directory_name    = "r"
+data_source_docs_directory_name = "d"
+use_typed_sdk                   = false
+```
+
+**Note:** Command line options override values from the config file.
+
 ## Command Documentation
 `tfpdk [command]`
 * [init](docs/init.md)
