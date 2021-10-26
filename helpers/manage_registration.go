@@ -7,10 +7,11 @@ import (
 	"go/format"
 	"go/parser"
 	"go/token"
-	"golang.org/x/tools/go/ast/astutil"
 	"log"
 	"os"
 	"strings"
+
+	"golang.org/x/tools/go/ast/astutil"
 )
 
 type operation string
@@ -34,6 +35,10 @@ type astKey struct {
 	ValFun      string
 }
 
+var resourceNameToAdd string
+
+var fSet *token.FileSet
+
 // UpdateRegistration modifies the `registration.go` file to add (or remove?) items from the relevant blocks when
 // a user adds (or removes?) a reource or datasource via `tfpdk resource` or `tfpdk datasource`
 //
@@ -43,7 +48,8 @@ type astKey struct {
 // op = one of Register or Unregister // TODO - removing is a future concern so not yet implemented
 // isTyped = true if the resources uses the TypedSDK
 func UpdateRegistration(servicePackagePath string, resourceName string, resource resourceType, _ operation, isTyped bool) error {
-	fSet := token.NewFileSet()
+	resourceNameToAdd = resourceName
+	fSet = token.NewFileSet()
 	regFilePath := fmt.Sprintf("%s/registration.go", strings.TrimSuffix(servicePackagePath, "/"))
 	regFile, err := parser.ParseFile(fSet, regFilePath, nil, 0)
 	if err != nil {
@@ -55,50 +61,15 @@ func UpdateRegistration(servicePackagePath string, resourceName string, resource
 		fn, ok := node.(*ast.FuncDecl)
 		if ok {
 			if fn.Name.Name == nodeName {
-				offset := int(fn.Body.List[0].(*ast.ReturnStmt).Results[0].(*ast.CompositeLit).Lbrace) + 5
 				ast.Inspect(fn.Body.List[0], func(r ast.Node) bool {
 					ret, ok := r.(*ast.ReturnStmt)
 					if ok {
 						ast.Inspect(ret.Results[0], func(n ast.Node) bool {
-							out, ok := n.(*ast.CompositeLit)
-							if ok {
-								resourceList := make([]astKey, 0)
-								maxOffset := 0
-								for _, v := range out.Elts {
-									offset = offset + maxOffset
-									key := v.(*ast.KeyValueExpr).Key.(*ast.BasicLit)
-									val := v.(*ast.KeyValueExpr).Value.(*ast.CallExpr)
-									resourceList = append(resourceList, astKey{
-										KeyValuePos: offset,
-										KeyKind:     key.Kind,
-										KeyValue:    key.Value,
-										ValFun:      val.Fun.(*ast.Ident).Name,
-									})
-									newOffset := len(string(key.Kind)) + len(key.Value) + len(val.Fun.(*ast.Ident).Name) + 4
-									if newOffset > maxOffset {
-										maxOffset = newOffset
-									}
-								}
-
-								resourceList = append(resourceList, astKey{
-									KeyValuePos: offset + maxOffset,
-									KeyKind:     token.STRING,
-									KeyValue:    TerraformResourceName("azurerm", resourceName),
-									ValFun:      "testEntry",
-								})
-
-								newElts := make([]ast.Expr, 0)
-
-								for _, v := range resourceList {
-									newElts = append(newElts, newUnTypedASTReturnEntry(v.KeyValue, v.ValFun, v.KeyValuePos))
-								}
-
-								out.Elts = newElts
-								ret.Results[0] = out
+							if out, ok := n.(*ast.CompositeLit); ok {
+								astutil.Apply(out, AppendResourceToRegistrationBlock(), nil)
 							}
 							return true
 						})
-						fn.Body.List[0] = ret
 					}
 					return true
 				})
@@ -187,11 +158,21 @@ func UpdateRegistrationByNode(servicePackagePath string, resourceName string, re
 	return nil
 }
 
-//
-//n := astutil.Apply(out.Elts[len(out.Elts)-1], func(c *astutil.Cursor) bool {
-//	if _, ok := c.Parent().(*ast.CompositeLit); ok {
-//		c.InsertAfter(newUnTypedASTReturnEntry(resourceName, TerraformResourceName("azurerm", resourceName), 0))
-//	}
-//	return true
-//}, nil)
-//
+func AppendResourceToRegistrationBlock() astutil.ApplyFunc {
+	return func(c *astutil.Cursor) bool {
+		m := c.Node()
+		if t, ok := m.(*ast.KeyValueExpr); ok {
+			alreadyPresent := false
+			snakeName := TerraformResourceName("azurerm", resourceNameToAdd)
+			if strings.Trim(t.Key.(*ast.BasicLit).Value, "\"") == snakeName {
+				alreadyPresent = true
+			}
+			p := c.Parent().(*ast.CompositeLit)
+			if len(p.Elts)-1 == c.Index() && !alreadyPresent {
+				c.InsertAfter(newUnTypedASTReturnEntry(snakeName, "testEntry", int(m.(*ast.KeyValueExpr).Value.(*ast.CallExpr).Rparen)+4))
+			}
+			return false
+		}
+		return true
+	}
+}
