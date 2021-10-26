@@ -103,6 +103,8 @@ func (d DataSourceData) generate() error {
 		return err
 	}
 
+	_ = helpers.UpdateRegistration(config.ServicePackagesPath+"/"+d.ServicePackage, d.Name, helpers.TypeDatasource, helpers.Register, d.Typed)
+
 	return nil
 }
 

@@ -3,11 +3,11 @@ package helpers
 import (
 	"bytes"
 	"fmt"
+	"github.com/iancoleman/strcase"
 	"go/ast"
 	"go/format"
 	"go/parser"
 	"go/token"
-	"log"
 	"os"
 	"strings"
 
@@ -37,7 +37,7 @@ type astKey struct {
 
 var resourceNameToAdd string
 
-var fSet *token.FileSet
+//var fSet *token.FileSet
 
 // UpdateRegistration modifies the `registration.go` file to add (or remove?) items from the relevant blocks when
 // a user adds (or removes?) a reource or datasource via `tfpdk resource` or `tfpdk datasource`
@@ -49,7 +49,7 @@ var fSet *token.FileSet
 // isTyped = true if the resources uses the TypedSDK
 func UpdateRegistration(servicePackagePath string, resourceName string, resource resourceType, _ operation, isTyped bool) error {
 	resourceNameToAdd = resourceName
-	fSet = token.NewFileSet()
+	fSet := token.NewFileSet()
 	regFilePath := fmt.Sprintf("%s/registration.go", strings.TrimSuffix(servicePackagePath, "/"))
 	regFile, err := parser.ParseFile(fSet, regFilePath, nil, 0)
 	if err != nil {
@@ -66,7 +66,11 @@ func UpdateRegistration(servicePackagePath string, resourceName string, resource
 					if ok {
 						ast.Inspect(ret.Results[0], func(n ast.Node) bool {
 							if out, ok := n.(*ast.CompositeLit); ok {
-								astutil.Apply(out, AppendResourceToRegistrationBlock(), nil)
+								if isTyped {
+									astutil.Apply(out, typedAppendResourceToRegistrationBlock(), nil)
+								} else {
+									astutil.Apply(out, untypedAppendResourceToRegistrationBlock(), nil)
+								}
 							}
 							return true
 						})
@@ -121,44 +125,7 @@ func newUnTypedASTReturnEntry(key string, value string, pos int) *ast.KeyValueEx
 	}
 }
 
-func UpdateRegistrationByNode(servicePackagePath string, resourceName string, resource resourceType, _ operation, isTyped bool) error {
-	fSet := token.NewFileSet()
-	regFilePath := fmt.Sprintf("%s/registration.go", strings.TrimSuffix(servicePackagePath, "/"))
-	regFile, err := parser.ParseFile(fSet, regFilePath, nil, 0)
-	if err != nil {
-		return err
-	}
-
-	nodeName := normaliseNodeName(resource, isTyped)
-	newKeyValue := TerraformResourceName("azurerm", resourceName)
-	n := astutil.Apply(regFile, func(c *astutil.Cursor) bool {
-		if d, ok := c.Parent().(*ast.FuncDecl); ok && d.Name.Name == nodeName && c.Name() == "Body" {
-			node := c.Node()
-			log.Printf("%+v", node)
-			if _, ok := node.(*ast.BlockStmt); ok {
-				elts := node.(*ast.BlockStmt).List[0].(*ast.ReturnStmt).Results[0].(*ast.CompositeLit).Elts
-				log.Printf("%+v", elts)
-				elts = append(elts, newUnTypedASTReturnEntry(newKeyValue, "testEntry", 0))
-				node.(*ast.BlockStmt).List[0].(*ast.ReturnStmt).Results[0].(*ast.CompositeLit).Elts = elts
-				c.Replace(node)
-			}
-		}
-		return true
-	}, nil)
-
-	outBuf := new(bytes.Buffer)
-	if err := format.Node(outBuf, fSet, n); err != nil {
-		return err
-	}
-
-	if err := os.WriteFile(regFilePath, outBuf.Bytes(), 0755); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func AppendResourceToRegistrationBlock() astutil.ApplyFunc {
+func untypedAppendResourceToRegistrationBlock() astutil.ApplyFunc {
 	return func(c *astutil.Cursor) bool {
 		m := c.Node()
 		if t, ok := m.(*ast.KeyValueExpr); ok {
@@ -172,6 +139,58 @@ func AppendResourceToRegistrationBlock() astutil.ApplyFunc {
 				c.InsertAfter(newUnTypedASTReturnEntry(snakeName, "testEntry", int(m.(*ast.KeyValueExpr).Value.(*ast.CallExpr).Rparen)+4))
 			}
 			return false
+		}
+		return true
+	}
+}
+
+func newTypedASTReturnEntry(name string, pos int) *ast.CompositeLit {
+	return &ast.CompositeLit{
+		Type: &ast.Ident{
+			NamePos: token.Pos(pos),
+			Name:    name,
+		},
+		Rbrace: token.Pos(len(name) + 6),
+	}
+}
+
+func firstTypedRegistrationBlockEntry(name string, pos int) *ast.CompositeLit {
+	return &ast.CompositeLit{
+		Type: &ast.Ident{
+			NamePos: token.Pos(pos),
+			Name:    name,
+		},
+		Rbrace: token.Pos(len(name) + 6),
+	}
+}
+
+func typedAppendResourceToRegistrationBlock() astutil.ApplyFunc {
+	return func(c *astutil.Cursor) bool {
+		m := c.Node()
+		typedName := strcase.ToCamel(resourceNameToAdd)
+		addEntry := true
+		if t, ok := m.(*ast.CompositeLit); ok {
+			if _, ok := t.Type.(*ast.ArrayType); ok && t.Elts == nil {
+				// No entries in the list
+				addEntry = false
+				t.Elts = []ast.Expr{firstTypedRegistrationBlockEntry(typedName, int(t.Lbrace)+4)}
+				c.Replace(t)
+				return false
+			}
+
+			if p, parentOk := c.Parent().(*ast.CompositeLit); parentOk {
+				if _, ok := t.Type.(*ast.Ident); ok && addEntry {
+					for _, v := range p.Elts {
+						if v.(*ast.CompositeLit).Type.(*ast.Ident).Name == typedName {
+							addEntry = false
+						}
+					}
+					if len(p.Elts)-1 == c.Index() && addEntry {
+						c.InsertAfter(newTypedASTReturnEntry(typedName, int(m.(*ast.CompositeLit).Rbrace)+4))
+					}
+					return false
+				}
+			}
 		}
 		return true
 	}
