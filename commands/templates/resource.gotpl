@@ -96,10 +96,10 @@ import (
 
 func resource{{ToCamel .Name}}() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resource{{- .Name -}}Create,
-		Read:   resource{{- .Name -}}Read,{{if .HasUpdate}}
-		Update: resource{{- .Name -}}Update,{{end}}
-		Delete: resource{{- .Name -}}Delete,
+		Create: resource{{- ToCamel .Name -}}Create,
+		Read:   resource{{- ToCamel .Name -}}Read,{{if .HasUpdate}}
+		Update: resource{{- ToCamel .Name -}}Update,{{end}}
+		Delete: resource{{- ToCamel .Name -}}Delete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			// TODO - Drop the appropriate ID Parse Function in here e.g.

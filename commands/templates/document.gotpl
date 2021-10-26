@@ -6,11 +6,11 @@ subcategory: "TODO"
 layout: "{{.ProviderName}}"
 page_title: "{{.ProviderName}}: {{.Name}}"
 description: |-
-  Manages {{ToDescriptionString .Name}}.
+  Manages {{PrefixedDescriptionString .Name}}.
 ---
 # {{.ProviderName}}_{{.Name}}
 
-Manages {{ToDescriptionString .Name}}.
+Manages {{PrefixedDescriptionString .Name}}.
 
 ```hcl
 {{- template "usage_example" .}}
@@ -19,8 +19,9 @@ Manages {{ToDescriptionString .Name}}.
 ## Arguments Reference
 
 The following arguments are supported:
-{{range $name, $value := .Schema.Block.Attributes }}{{- if $value.Required}}
-* `{{$name}}` - (Required) {{$value.Description}}{{end -}}{{- if $value.ForceNew}}Changing this forces a new resource to be created.{{end -}}
+{{- range $name, $value := .Schema.Block.Attributes }}{{- if $value.Required}}
+
+* `{{$name}}` - (Required) {{$value.Description}}{{end}}{{- if $value.ForceNew}}Changing this forces a new resource to be created.{{end -}}
 {{end}}
 
 ---
@@ -32,7 +33,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the {{ToDescriptionString .Name}}
+* `id` - The ID of the {{ToDelimTitle .Name}}
 {{range $name, $value := .Schema.Block.Attributes }}{{- if and ($value.Computed) (and (not $value.Required) (not $value.Optional)) }}{{if not (eq $name "id")}}
 * `{{$name}}` - {{$value.Description}}
 {{end -}}
@@ -42,10 +43,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to TODO minutes) Used when creating the {{ToDescriptionString .Name}}.
-* `update` - (Defaults to TODO minutes) Used when updating the {{ToDescriptionString .Name}}t.
-* `read` - (Defaults to TODO minutes) Used when retrieving the {{ToDescriptionString .Name}}.
-* `delete` - (Defaults to TODO minutes) Used when deleting the {{ToDescriptionString .Name}}.
+* `create` - (Defaults to TODO minutes) Used when creating the {{ToDelimTitle .Name}}.
+* `update` - (Defaults to TODO minutes) Used when updating the {{ToDelimTitle .Name}}.
+* `read` - (Defaults to TODO minutes) Used when retrieving the {{ToDelimTitle .Name}}.
+* `delete` - (Defaults to TODO minutes) Used when deleting the {{ToDelimTitle .Name}}.
 
 ## Import
 

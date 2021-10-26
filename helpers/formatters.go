@@ -27,12 +27,16 @@ func ToString(value interface{}) string {
 	}
 }
 
-func ToDescriptionString(input string) string {
+func PrefixedDescriptionString(input string) string {
 	prefix := "a"
-	vowel, _ := regexp.Match(input[0:0], []byte{})
+	vowel, _ := regexp.Match(input[0:0], []byte(`aeiou`))
 
 	if vowel {
 		prefix = "an"
 	}
 	return fmt.Sprintf("%s %s", prefix, strings.Title(strcase.ToDelimited(input, ' ')))
+}
+
+func ToDelimTitle(input string) string {
+	return strings.Title(strcase.ToDelimited(input, ' '))
 }

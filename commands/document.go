@@ -115,12 +115,17 @@ func (d *DocumentData) generate() error {
 
 	tpl := template.Must(template.New("document.gotpl").Funcs(TplFuncMap).ParseFS(Templatedir, "templates/document.gotpl"))
 
-	outputPath := ""
-	if d.ServicePackage != "" {
-		outputPath = fmt.Sprintf("internal/services/%s/docs/%s.md", strings.ToLower(strcase.ToCamel(d.ServicePackage)), d.SnakeName)
+	outputPath := fmt.Sprintf("website/%s", config.DocsPath) // TODO - AzureRM will drop the `website` in 3.0
+	if d.DocType == "datasource" {
+		outputPath = fmt.Sprintf("%s/%s", outputPath, config.DataSourceDocsDirname)
 	} else {
-		outputPath = fmt.Sprintf("docs/%s.md", d.SnakeName)
+		outputPath = fmt.Sprintf("%s/%s", outputPath, config.ResourceDocsDirname)
 	}
+	//if d.ServicePackage != "" { // TODO - revisit this when we know what structure we need for RM3.0 etc
+	//	outputPath = fmt.Sprintf("internal/services/%s/docs/%s.md", strings.ToLower(strcase.ToCamel(d.ServicePackage)), d.SnakeName)
+	//} else {
+	//}
+	outputPath = fmt.Sprintf("%s/%s.md", outputPath, strings.TrimPrefix(d.SnakeName, "azurerm_"))
 
 	f, err := os.Create(outputPath)
 	if err != nil {
