@@ -13,22 +13,33 @@ Run from the root of the provider project.
 ## TODO
 - [x] untyped resource template
 - [x] `go fmt` outputs
-- [ ] Add new resources / data sources to appropriate registration
+- [x] Add new resources / data sources to appropriate registration
 - [x] typed and untyped Data Sources
 - [x] init a new provider - git clone [scaffold](https://github.com/hashicorp/terraform-provider-scaffolding)?
 - [ ] optionally populate the Typed SDK into the init step? 
 - [x] Dynamically read provider name for item generation
 - [ ] Populate `IDValidationFunc()` in template for IDs (Pandora)
 - [ ] Clients?
-- [ ] Autocomplete?
-- [x] Spike doc generation (just resources for now)
-- [ ] migrate to plugin sdk to read schema directly for doc gen as Terraform's JSON output lacks necessary detail. (e.g. timeouts, ForceNew flags etc)
+- [ ] Autocomplete CLI?
+- [x] Spike doc generation 
+- [ ] Extend doc gen to deal with Blocks
+- [ ] migrate to ~~plugin sdk~~ something else to read schema directly for doc gen as Terraform's JSON output lacks necessary detail. (e.g. timeouts, ForceNew flags etc)
 - [x] update commands and templates to allow non-hashicorp providers ~~and sources other than github~~ (e.g. import paths)
 
 
 ## Commands
 
-* `tfpdk resource` - Creates resource,
+Usage: `tfpdk [--version] [--help] <command> [<args>]`
+
+```
+Available commands are:
+config            Generate a local config file for common options.  
+datasource        creates boiler-plate Data Sources.  
+document          generates documentation from a resource.  
+init              initialises a new provider based on the scaffold project.  
+resource          creates boiler-plate resources.  
+servicepackage    Creates a directory for a new Service Package and scaffolds out the basics to use it.  
+```
 
 ## Usage Examples
 
@@ -43,12 +54,29 @@ Will create the following path `{providername}/internal/services/SomeCloudServic
 tfpdk resource -name ShinyNewService -servicepackage SomeCloudService
 ```
 Will create the following path `{providername}/internal/services/SomeCloudService/shiny_new_service_resource.go`
+and update `registration.go` with the new resource in the `SupportedResources()` func e.g. 
+
+```go
+func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
+		"azurerm_shiny_new_service": resourceShinyNewService(),
+	}
+}
+```
 
 ### Create a typed updatable resource 
 ```shell
 tfpdk resource -name ShinyNewService -servicepackage SomeCloudService -has-update -typed
 ```
 Will create the following path `{providername}/internal/services/SomeCloudService/shiny_new_service_resource.go`
+and update `registration.go` with the new resource in the `Resources()` func, e.g.
+```go
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		ShinyNewServiceResource{},
+	}
+}
+```
 
 ### Document your new resource (relies on the `Description` fields in your schema, so populate those for best effect)
 ```shell
