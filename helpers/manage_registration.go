@@ -48,7 +48,19 @@ var resourceNameToAdd string
 // op = one of Register or Unregister // TODO - removing is a future concern so not yet implemented
 // isTyped = true if the resources uses the TypedSDK
 func UpdateRegistration(servicePackagePath string, resourceName string, resource resourceType, _ operation, isTyped bool) error {
-	resourceNameToAdd = resourceName
+	if strings.EqualFold(string(resource), "datasource") {
+		if isTyped {
+			resourceNameToAdd = resourceName + "DataSource"
+		} else {
+			resourceNameToAdd = resourceName
+		}
+	} else {
+		if isTyped {
+			resourceNameToAdd = resourceName + "Resource"
+		} else {
+			resourceNameToAdd = resourceName
+		}
+	}
 	fSet := token.NewFileSet()
 	regFilePath := fmt.Sprintf("%s/registration.go", strings.TrimSuffix(servicePackagePath, "/"))
 	regFile, err := parser.ParseFile(fSet, regFilePath, nil, 0)
@@ -136,7 +148,7 @@ func untypedAppendResourceToRegistrationBlock() astutil.ApplyFunc {
 			}
 			p := c.Parent().(*ast.CompositeLit)
 			if len(p.Elts)-1 == c.Index() && !alreadyPresent {
-				c.InsertAfter(newUnTypedASTReturnEntry(snakeName, "testEntry", int(m.(*ast.KeyValueExpr).Value.(*ast.CallExpr).Rparen)+4))
+				c.InsertAfter(newUnTypedASTReturnEntry(snakeName, fmt.Sprintf("resource%s", strcase.ToCamel(resourceNameToAdd)), int(m.(*ast.KeyValueExpr).Value.(*ast.CallExpr).Rparen)+4))
 			}
 			return false
 		}
