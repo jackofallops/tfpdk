@@ -10,8 +10,7 @@ fmt:
 	find . -name '*.go' | grep -v vendor | xargs gofmt -s -w
 
 goimports:
-	@echo "==> Fixing source code with gofmt..."
-	# This logic should match the search logic in scripts/gofmtcheck.sh
+	@echo "==> Fixing source code with goimports..."
 	find . -name '*.go' | grep -v vendor | xargs goimports -w
 
 lint:

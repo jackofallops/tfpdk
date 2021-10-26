@@ -3,7 +3,6 @@ package helpers
 import (
 	"bytes"
 	"fmt"
-	"github.com/iancoleman/strcase"
 	"go/ast"
 	"go/format"
 	"go/parser"
@@ -11,6 +10,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/iancoleman/strcase"
 	"golang.org/x/tools/go/ast/astutil"
 )
 
