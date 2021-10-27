@@ -35,7 +35,8 @@ func LoadConfig() *Configuration {
 	}
 	p, err := ProviderName()
 	if err != nil || p == nil {
-		log.Printf("failed to determine provider name %+v", err)
+		log.Printf("failed to determine provider name: %+v", err)
+		os.Exit(1)
 	}
 	config.ProviderName = *p
 	info, err := os.Stat(ConfigFileName)

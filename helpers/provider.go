@@ -18,12 +18,10 @@ func ProviderName() (providerName *string, err error) {
 	}
 	wdParts := strings.Split(cwd, ps)
 	fullProviderName := wdParts[len(wdParts)-1]
-	if !strings.HasPrefix(fullProviderName, "terraform-provider-") {
-		return nil, fmt.Errorf("current Working Directory path does not appear to be a terraform provider: %+v", cwd)
-	}
-	nameParts := strings.Split(fullProviderName, "-")
 
-	providerName = &nameParts[len(nameParts)-1]
+	n := strings.TrimPrefix(fullProviderName, "terraform-provider-")
+
+	providerName = &n
 
 	return
 }
