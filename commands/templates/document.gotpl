@@ -34,7 +34,7 @@ The following arguments are supported:
 
 ---
 
-a `{{$name}}` block supports the following:
+{{PrefixedLabelString $name}} block supports the following:
 {{- range $bname, $bvalue := $value.Elem.schema }}
 
 * `{{$bname}}` - {{if $bvalue.required}}(Required) {{end}}{{if $bvalue.optional}}(Optional) {{end}}{{if or (eq $bvalue.type "TypeList") (eq $bvalue.type "TypeSet")}}a `{{$bname}}` block as detailed below.{{else}}{{if ne $bvalue.description nil}}{{$bvalue.description}}{{else}} // TODO - Add description field to schema for this item and regenerate docs{{end}}{{end}}{{- if $bvalue.ForceNew}} Changing this forces a new resource to be created.{{end -}}
@@ -71,7 +71,6 @@ terraform import {{.Name}}.example "{{.IDExample}}"
 {{define "datasouce"}}
 Not yet implemented, but Documents a datasource eventually
 {{end}}
-
 
 {{ define "usage_example" }}
 resource "{{.ProviderName}}_{{.Name}}" "example" {

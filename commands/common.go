@@ -20,6 +20,7 @@ var TplFuncMap = template.FuncMap{
 	"ToDelim":                   strcase.ToDelimited,
 	"ToDelimTitle":              helpers.ToDelimTitle,
 	"PrefixedDescriptionString": helpers.PrefixedDescriptionString,
+	"PrefixedLabelString":       helpers.PrefixedLabelString,
 }
 
 func init() {

@@ -41,3 +41,15 @@ func PrefixedDescriptionString(input string) string {
 func ToDelimTitle(input string) string {
 	return strings.Title(strcase.ToDelimited(input, ' '))
 }
+
+func PrefixedLabelString(input string) string {
+	prefix := "a"
+	first := input[0:1]
+	vowel, _ := regexp.Match(first, []byte(`aeiouAEIOU`))
+
+	if vowel {
+		prefix = "an"
+	}
+
+	return fmt.Sprintf("%s `%s`", prefix, input)
+}
