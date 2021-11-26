@@ -19,23 +19,34 @@ Manages {{PrefixedDescriptionString .Name}}.
 ## Arguments Reference
 
 The following arguments are supported:
-{{- range $name, $value := .Schema.Block.Attributes }}{{- if $value.Required}}
+{{- range $name, $value := .Resource.Schema }}{{- if $value.Required}}
 
-* `{{$name}}` - (Required) {{$value.Description}}{{end}}{{- if $value.ForceNew}}Changing this forces a new resource to be created.{{end -}}
+* `{{$name}}` - (Required) {{if or (eq $value.Type "TypeList") (eq $value.Type "TypeSet")}}a `{{$name}}` block as detailed below.{{else}}{{if ne $value.Description ""}}{{$value.Description}}{{else}} // TODO - Add description field to schema for this item and regenerate docs. {{end}}{{end}}{{end}}{{- if $value.ForceNew}} Changing this forces a new resource to be created.{{end -}}
 {{end}}
 
 ---
-{{range $name, $value := .Schema.Block.Attributes}}{{- if $value.Optional}}
-* `{{$name}}` - (Optional) {{$value.Description}}
-{{end -}}{{- /* end if $value.Optional */ -}}
+{{- range $name, $value := .Resource.Schema }}{{- if $value.Optional}}
+
+* `{{$name}}` - (Optional) {{if or (eq $value.Type "TypeList") (eq $value.Type "TypeSet")}}a `{{$name}}` block as detailed below.{{else}}{{if ne $value.Description ""}}{{$value.Description}}{{else}} // TODO - Add description field to schema for this item and regenerate docs. {{end}}{{end}}{{end}}{{- if $value.ForceNew}} Changing this forces a new resource to be created.{{end -}}{{- /* end if $value.Optional */ -}}
 {{end}}
+
+{{- range $name, $value := .Resource.Schema }}{{if $value.Elem}}{{if $value.Elem.schema}}
+
+---
+
+a `{{$name}}` block supports the following:
+{{- range $bname, $bvalue := $value.Elem.schema }}
+
+* `{{$bname}}` - {{if $bvalue.required}}(Required) {{end}}{{if $bvalue.optional}}(Optional) {{end}}{{if or (eq $bvalue.type "TypeList") (eq $bvalue.type "TypeSet")}}a `{{$bname}}` block as detailed below.{{else}}{{if ne $bvalue.description nil}}{{$bvalue.description}}{{else}} // TODO - Add description field to schema for this item and regenerate docs{{end}}{{end}}{{- if $bvalue.ForceNew}} Changing this forces a new resource to be created.{{end -}}
+{{end}}{{end}}{{end}}{{end}}
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the {{ToDelimTitle .Name}}
-{{range $name, $value := .Schema.Block.Attributes }}{{- if and ($value.Computed) (and (not $value.Required) (not $value.Optional)) }}{{if not (eq $name "id")}}
-* `{{$name}}` - {{$value.Description}}
+{{range $name, $value := .Resource.Schema }}{{- if and ($value.Computed) (and (not $value.Required) (not $value.Optional)) }}{{if not (eq $name "id")}}
+* `{{$name}}` - {{if ne $value.Description ""}}{{$value.Description}}{{else}} // TODO - Add description field to schema for this item and regenerate docs{{end}}
 {{end -}}
 {{end -}}{{- /* end if and ($value.Computed) (and (not $value.Required) (not $value.Optional)) */ -}}
 {{end}}
@@ -43,14 +54,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to TODO minutes) Used when creating the {{ToDelimTitle .Name}}.
-* `update` - (Defaults to TODO minutes) Used when updating the {{ToDelimTitle .Name}}.
-* `read` - (Defaults to TODO minutes) Used when retrieving the {{ToDelimTitle .Name}}.
-* `delete` - (Defaults to TODO minutes) Used when deleting the {{ToDelimTitle .Name}}.
+* `create` - (Defaults to {{ .Resource.Timeouts.Create }} minutes) Used when creating the {{ToDelimTitle .Name}}.
+* `update` - (Defaults to {{ .Resource.Timeouts.Update }} minutes) Used when updating the {{ToDelimTitle .Name}}.
+* `read` - (Defaults to {{ .Resource.Timeouts.Read }} minutes) Used when retrieving the {{ToDelimTitle .Name}}.
+* `delete` - (Defaults to {{ .Resource.Timeouts.Delete }} minutes) Used when deleting the {{ToDelimTitle .Name}}.
 
 ## Import
 
-Subscriptions can be imported using the `resource id`, e.g.
+{{PrefixedDescriptionString .Name}} can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import {{.Name}}.example "{{.IDExample}}"
@@ -64,8 +75,8 @@ Not yet implemented, but Documents a datasource eventually
 
 {{ define "usage_example" }}
 resource "{{.ProviderName}}_{{.Name}}" "example" {
-{{- range $name, $value := .Schema.Block.Attributes }}{{if $value.Required}}
-  {{$name}} = {{if eq $value.Type "string"}}"example"{{end -}}
+{{range $name, $value := .Resource.Schema }}{{if and ($value.Required) (eq $value.Type "TypeString")}}  {{$name}} = "example"
 {{end}}{{end}}
-}
+{{range $name, $value := .Resource.Schema }}{{if and ($value.Required) (eq $value.Type "TypeList")}}  {{$name}} = {}
+{{end}}{{end}}}
 {{end}}

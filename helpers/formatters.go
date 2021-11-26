@@ -29,7 +29,8 @@ func ToString(value interface{}) string {
 
 func PrefixedDescriptionString(input string) string {
 	prefix := "a"
-	vowel, _ := regexp.Match(input[0:0], []byte(`aeiou`))
+	first := input[0:1]
+	vowel, _ := regexp.Match(first, []byte(`aeiouAEIOU`))
 
 	if vowel {
 		prefix = "an"

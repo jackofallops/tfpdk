@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 )
 
@@ -58,4 +59,20 @@ func GetTerraformSchemaJSON() Provider {
 	_ = json.Unmarshal(f, &result)
 
 	return result
+}
+
+func GetSchema(name string) (*Resource, error) {
+	resp, err := http.Get(fmt.Sprintf("http://localhost:8080/schema-data/v1/resources/%s", name))
+	if err != nil {
+		return nil, err
+	}
+
+	content, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	result := &Resource{}
+	err = json.Unmarshal(content, result)
+
+	return result, err
 }

@@ -24,7 +24,7 @@ type DocumentData struct {
 	ProviderName   string
 	ServicePackage string
 	DocType        string
-	Schema         helpers.ResourceSchema
+	Resource       helpers.Resource
 	IDExample      string
 	Examples       []string
 	ResourceData   string
@@ -97,34 +97,28 @@ func (d *DocumentData) generate() error {
 	}
 
 	// provider := helpers.OpenProviderJSON("/tmp/provider-out.json")
-	provider := helpers.GetTerraformSchemaJSON()
+	//provider := helpers.GetTerraformSchemaJSON()
 
-	schema, err := helpers.ParseProviderJSON(provider, d.ProviderName, d.SnakeName, helpers.DocType(d.DocType))
-	if err != nil || schema == nil {
-		fmt.Printf("[DEBUG] reading %s %s from provider JSON", d.DocType, d.Name)
+	resource, err := helpers.GetSchema(d.SnakeName)
+	if err != nil {
 		return err
 	}
-
-	// terraform marks the id as optional in the output JSON, this makes the template super messy, so we'll flip the bool here
-	if tmpID, ok := schema.Block.Attributes["id"]; ok {
-		tmpID.Optional = false
-		schema.Block.Attributes["id"] = tmpID
-	}
-
-	d.Schema = *schema
+	d.Resource = *resource
 
 	tpl := template.Must(template.New("document.gotpl").Funcs(TplFuncMap).ParseFS(Templatedir, "templates/document.gotpl"))
 
-	outputPath := fmt.Sprintf("website/%s", config.DocsPath) // TODO - AzureRM will drop the `website` in 3.0
+	outputPath := fmt.Sprintf("website/%s", config.DocsPath) // TODO - AzureRM may drop the `website` in 3.0
 	if d.DocType == "datasource" {
 		outputPath = fmt.Sprintf("%s/%s", outputPath, config.DataSourceDocsDirname)
 	} else {
 		outputPath = fmt.Sprintf("%s/%s", outputPath, config.ResourceDocsDirname)
 	}
-	//if d.ServicePackage != "" { // TODO - revisit this when we know what structure we need for RM3.0 etc
+
+	// if d.ServicePackage != "" { // TODO - revisit this when we know what structure we need for RM3.0 etc
 	//	outputPath = fmt.Sprintf("internal/services/%s/docs/%s.md", strings.ToLower(strcase.ToCamel(d.ServicePackage)), d.SnakeName)
-	//} else {
-	//}
+	// } else {
+	// }
+
 	providerPrefix := fmt.Sprintf("%s_", d.ProviderName)
 	outputPath = fmt.Sprintf("%s/%s.md", outputPath, strings.TrimPrefix(d.SnakeName, providerPrefix))
 

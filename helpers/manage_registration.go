@@ -170,6 +170,8 @@ func firstTypedRegistrationBlockEntry(name string, pos int) *ast.CompositeLit {
 	}
 }
 
+// TODO - sorted list, by Ident.Name
+
 func typedAppendResourceToRegistrationBlock() astutil.ApplyFunc {
 	return func(c *astutil.Cursor) bool {
 		m := c.Node()
