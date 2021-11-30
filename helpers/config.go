@@ -14,6 +14,7 @@ const (
 
 type Configuration struct {
 	ProviderName          string `hcl:"provider_name,optional"`
+	ProviderCanonicalName string `hcl:"provider_canonical_name,optional"`
 	ServicePackagesPath   string `hcl:"service_packages_path,optional"`
 	DocsPath              string `hcl:"docs_path,optional"`
 	ProviderGithubOrg     string `hcl:"provider_github_org,optional"`

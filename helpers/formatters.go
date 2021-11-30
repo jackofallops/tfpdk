@@ -53,3 +53,53 @@ func PrefixedLabelString(input string) string {
 
 	return fmt.Sprintf("%s `%s`", prefix, input)
 }
+
+func SchemaItemFormatter(input Schema, name string) string {
+	// Block detection
+	var optionalOrRequired, desc, forceNew string
+	if input.Required {
+		optionalOrRequired = "(Required) "
+	} else if input.Optional {
+		optionalOrRequired = "(Optional) "
+	}
+	if strings.EqualFold(input.Type, "typelist") || strings.EqualFold(input.Type, "typeset") {
+		return fmt.Sprintf("* `%s` %s- %s block as detailed below.", name, optionalOrRequired, PrefixedLabelString(name))
+	}
+
+	if input.Description != "" {
+		desc = strings.TrimSpace(input.Description) // TODO auto-fix line ends for MD linting?
+	} else {
+		desc = "// TODO - Add missing `Description` to schema for this property and regenerate this file."
+	}
+
+	if input.ForceNew {
+		forceNew = "Changing this forces a new resource to be created."
+		return fmt.Sprintf("* `%s` %s- %s %s", name, optionalOrRequired, desc, forceNew)
+	}
+
+	return fmt.Sprintf("* `%s` %s- %s", name, optionalOrRequired, desc)
+}
+
+func SchemaItemFormatterSpecial(input Schema, name string) string {
+	switch name {
+	case "name", "resource_group_name", "location":
+		var optionalOrRequired, desc, forceNew string
+		if input.Required {
+			optionalOrRequired = "(Required)"
+		} else if input.Optional {
+			optionalOrRequired = "(Optional)"
+		}
+		if input.Description != "" {
+			desc = strings.TrimSpace(input.Description) // TODO auto-fix line ends for MD linting?
+		} else {
+			desc = "// TODO - Add missing `Description` to schema for this property and regenerate this file."
+		}
+		if input.ForceNew {
+			forceNew = "Changing this forces a new resource to be created."
+			return fmt.Sprintf("* `%s` %s - %s %s", name, optionalOrRequired, desc, forceNew)
+		}
+
+		return fmt.Sprintf("* `%s` %s - %s", name, optionalOrRequired, desc)
+	}
+	return ""
+}

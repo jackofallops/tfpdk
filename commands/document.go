@@ -19,15 +19,16 @@ type DocumentCommand struct {
 var _ cli.Command = DocumentCommand{}
 
 type DocumentData struct {
-	Name           string
-	SnakeName      string
-	ProviderName   string
-	ServicePackage string
-	DocType        string
-	Resource       helpers.Resource
-	IDExample      string
-	Examples       []string
-	ResourceData   string
+	Name                  string
+	SnakeName             string
+	ProviderName          string
+	ProviderCanonicalName string
+	ServicePackage        string
+	DocType               string
+	Resource              helpers.Resource
+	IDExample             string
+	Examples              []string
+	ResourceData          string
 }
 
 func (d *DocumentData) ParseArgs(args []string) (errors []error) {
@@ -48,6 +49,12 @@ func (d *DocumentData) ParseArgs(args []string) (errors []error) {
 
 	if strings.EqualFold(d.DocType, "resource") && d.IDExample == "" {
 		errors = append(errors, fmt.Errorf("`-id` required when `-type=resource\n`"))
+	}
+
+	if config.ProviderCanonicalName != "" {
+		d.ProviderCanonicalName = config.ProviderCanonicalName
+	} else {
+		d.ProviderCanonicalName = d.Name
 	}
 
 	return errors
