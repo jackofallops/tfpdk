@@ -29,17 +29,9 @@ The following arguments are supported:
 {{- range $name, $value := .Resource.Schema }}{{- if $value.Optional}}
 
 {{SchemaItemFormatter $value $name}}{{end -}}
-{{end}}
-
-{{- range $name, $value := .Resource.Schema }}{{if $value.Elem}}{{if $value.Elem.schema}}
-
----
-
-{{PrefixedLabelString $name}} block supports the following:
-{{- range $bname, $bvalue := $value.Elem.schema }}
-
-* `{{$bname}}` - {{if $bvalue.required}}(Required) {{end}}{{if $bvalue.optional}}(Optional) {{end}}{{if or (eq $bvalue.type "TypeList") (eq $bvalue.type "TypeSet")}}a `{{$bname}}` block as detailed below.{{else}}{{if ne $bvalue.description nil}}{{$bvalue.description}}{{else}} // TODO - Add description field to schema for this item and regenerate docs{{end}}{{end}}{{- if $bvalue.ForceNew}} Changing this forces a new resource to be created.{{end -}}
-{{end}}{{end}}{{end}}{{end}}
+{{end -}}
+{{- template "tier1block" .}}
+{{- template "tier2block" .}}
 
 ## Attributes Reference
 
@@ -67,16 +59,56 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 ```shell
 terraform import {{.Name}}.example "{{.IDExample}}"
 ```
-{{- end -}} {{- /* End of resource template def */ -}}
+{{end -}} {{- /* End of resource template def */ -}}
 
-{{define "datasouce"}}
+{{- define "datasouce"}}
 Not yet implemented, but Documents a datasource eventually
 {{end -}}
 
-{{define "usage_example" }}
+{{- define "usage_example" }}
 resource "{{.ProviderName}}_{{.Name}}" "example" {
 {{range $name, $value := .Resource.Schema }}{{if and ($value.Required) (eq $value.Type "TypeString")}}  {{$name}} = "example"
 {{end}}{{end}}
 {{range $name, $value := .Resource.Schema }}{{if and ($value.Required) (eq $value.Type "TypeList")}}  {{$name}} = {}
 {{end}}{{end}}}
 {{end}}
+
+{{- define "tier1block"}}
+  {{- range $name, $value := .Resource.Schema -}}
+    {{- if $value.Elem -}}
+      {{- if $value.Elem.schema}}
+
+---
+
+{{PrefixedLabelString $name}} block supports the following:
+        {{- range $bname, $bvalue := $value.Elem.schema}}
+
+* `{{$bname}}` - {{if $bvalue.required}}(Required) {{end}}{{if $bvalue.optional}}(Optional) {{end}}{{if or (eq $bvalue.type "TypeList") (eq $bvalue.type "TypeSet")}}a `{{$bname}}` block as detailed below.{{else}}{{if ne $bvalue.description nil}}{{$bvalue.description}}{{else}} // TODO - Add description field to schema for this item and regenerate docs{{end -}}{{end -}}{{- if $bvalue.ForceNew}} Changing this forces a new resource to be created.{{end -}}
+        {{- end -}}{{- /* end range $bname, $bvalue */ -}}
+      {{- end -}}{{- /* if $value.Elem.schema */ -}}
+    {{- end -}}{{- /* if $value.Elem  */ -}}
+  {{- end -}}{{- /* end range $name, $value */ -}}
+{{- end -}}{{- /* end define "tier1block"*/ -}}
+
+{{- define "tier2block"}}
+  {{- range $name, $value := .Resource.Schema -}}
+    {{- if $value.Elem -}}
+      {{- if $value.Elem.schema -}}
+        {{- range $bname, $bvalue := $value.Elem.schema -}}
+          {{- if $bvalue.elem -}}
+            {{- if $bvalue.elem.schema}}
+
+---
+
+{{PrefixedLabelString $bname}} block supports the following:
+              {{- range $cname, $cvalue := $bvalue.elem.schema}}
+
+* `{{$cname}}` - {{if $cvalue.required}}(Required) {{end}}{{if $cvalue.optional}}(Optional) {{end}}{{if or (eq $cvalue.type "TypeList") (eq $cvalue.type "TypeSet")}}a `{{$cname}}` block as detailed below.{{else}}{{if ne $cvalue.description nil}}{{$cvalue.description}}{{else}} // TODO - Add description field to schema for this item and regenerate docs{{end -}}{{end -}}{{- if $cvalue.ForceNew}} Changing this forces a new resource to be created.{{end -}}
+              {{- end -}}{{- /* range $cname, $cvalue */ -}}
+            {{- end -}}{{- /* end if $bvalue.elem.schema */ -}}
+          {{- end -}}{{- /* end if $bvalue.elem */ -}}
+        {{- end -}}{{- /* end range $bname, $bvalue */ -}}
+      {{- end -}}{{- /* end if $value.Elem.schema */ -}}
+    {{- end -}}{{- /* end if $value.Elem */ -}}
+  {{- end -}}{{- /* end range $name */ -}}
+{{- end -}}{{- /* end define "tier2block"*/ -}}
