@@ -16,6 +16,7 @@ type Configuration struct {
 	ProviderName          string `hcl:"provider_name,optional"`
 	ProviderCanonicalName string `hcl:"provider_canonical_name,optional"`
 	ServicePackagesPath   string `hcl:"service_packages_path,optional"`
+	SchemaAPIURL          string `hcl:"schema_api_url,optional"`
 	DocsPath              string `hcl:"docs_path,optional"`
 	ProviderGithubOrg     string `hcl:"provider_github_org,optional"`
 	ResourceDocsDirname   string `hcl:"resource_docs_directory_name,optional"`
@@ -28,6 +29,7 @@ type Configuration struct {
 func LoadConfig() *Configuration {
 	config := Configuration{
 		ServicePackagesPath:   "internal/services",
+		SchemaAPIURL:          "http://localhost:8080/schema-data/v1/",
 		ProviderGithubOrg:     "hashicorp",
 		DocsPath:              "docs",
 		ResourceDocsDirname:   "r",

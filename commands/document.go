@@ -103,10 +103,7 @@ func (d *DocumentData) generate() error {
 		d.SnakeName = strcase.ToSnake(fmt.Sprintf("%s_%s", d.ProviderName, d.Name))
 	}
 
-	// provider := helpers.OpenProviderJSON("/tmp/provider-out.json")
-	//provider := helpers.GetTerraformSchemaJSON()
-
-	resource, err := helpers.GetSchema(d.SnakeName)
+	resource, err := helpers.GetSchema(config.SchemaAPIURL, d.DocType, d.SnakeName)
 	if err != nil {
 		return err
 	}
@@ -120,11 +117,6 @@ func (d *DocumentData) generate() error {
 	} else {
 		outputPath = fmt.Sprintf("%s/%s", outputPath, config.ResourceDocsDirname)
 	}
-
-	// if d.ServicePackage != "" { // TODO - revisit this when we know what structure we need for RM3.0 etc
-	//	outputPath = fmt.Sprintf("internal/services/%s/docs/%s.md", strings.ToLower(strcase.ToCamel(d.ServicePackage)), d.SnakeName)
-	// } else {
-	// }
 
 	providerPrefix := fmt.Sprintf("%s_", d.ProviderName)
 	outputPath = fmt.Sprintf("%s/%s.md", outputPath, strings.TrimPrefix(d.SnakeName, providerPrefix))
@@ -142,4 +134,8 @@ func (d *DocumentData) generate() error {
 		return err
 	}
 	return nil
+}
+
+func buildAPIURL(base, resourceType string) string {
+	return ""
 }
