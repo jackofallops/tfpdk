@@ -76,16 +76,15 @@ resource "{{.ProviderName}}_{{.Name}}" "example" {
 {{- define "tier1block"}}
   {{- range $name, $value := .Resource.Schema -}}
     {{- if $value.Elem -}}
-      {{- if $value.Elem.schema}}
+      {{- if $value.Elem.Schema}}
 
 ---
 
 {{PrefixedLabelString $name}} block supports the following:
-        {{- range $bname, $bvalue := $value.Elem.schema}}
+        {{- range $bname, $bvalue := $value.Elem.Schema}}
 
-* `{{$bname}}` - {{if $bvalue.required}}(Required) {{end}}{{if $bvalue.optional}}(Optional) {{end}}{{if or (eq $bvalue.type "TypeList") (eq $bvalue.type "TypeSet")}}a `{{$bname}}` block as detailed below.{{else}}{{if ne $bvalue.description nil}}{{$bvalue.description}}{{else}} // TODO - Add description field to schema for this item and regenerate docs{{end -}}{{end -}}{{- if $bvalue.ForceNew}} Changing this forces a new resource to be created.{{end -}}
-        {{- end -}}{{- /* end range $bname, $bvalue */ -}}
-      {{- end -}}{{- /* if $value.Elem.schema */ -}}
+{{SchemaItemFormatter $bvalue $bname}}{{end -}}{{- /* end range $bname, $bvalue */ -}}
+      {{- end -}}{{- /* if $value.Elem.Schema */ -}}
     {{- end -}}{{- /* if $value.Elem  */ -}}
   {{- end -}}{{- /* end range $name, $value */ -}}
 {{- end -}}{{- /* end define "tier1block"*/ -}}
@@ -93,22 +92,21 @@ resource "{{.ProviderName}}_{{.Name}}" "example" {
 {{- define "tier2block"}}
   {{- range $name, $value := .Resource.Schema -}}
     {{- if $value.Elem -}}
-      {{- if $value.Elem.schema -}}
-        {{- range $bname, $bvalue := $value.Elem.schema -}}
+      {{- if $value.Elem.Schema -}}
+        {{- range $bname, $bvalue := $value.Elem.Schema -}}
           {{- if $bvalue.elem -}}
-            {{- if $bvalue.elem.schema}}
+            {{- if $bvalue.elem.Schema}}
 
 ---
 
 {{PrefixedLabelString $bname}} block supports the following:
-              {{- range $cname, $cvalue := $bvalue.elem.schema}}
+              {{- range $cname, $cvalue := $bvalue.elem.Schema}}
 
-* `{{$cname}}` - {{if $cvalue.required}}(Required) {{end}}{{if $cvalue.optional}}(Optional) {{end}}{{if or (eq $cvalue.type "TypeList") (eq $cvalue.type "TypeSet")}}a `{{$cname}}` block as detailed below.{{else}}{{if ne $cvalue.description nil}}{{$cvalue.description}}{{else}} // TODO - Add description field to schema for this item and regenerate docs{{end -}}{{end -}}{{- if $cvalue.ForceNew}} Changing this forces a new resource to be created.{{end -}}
-              {{- end -}}{{- /* range $cname, $cvalue */ -}}
-            {{- end -}}{{- /* end if $bvalue.elem.schema */ -}}
+{{SchemaItemFormatter $cvalue $cname}}{{end -}}{{- /* range $cname, $cvalue */ -}}
+            {{- end -}}{{- /* end if $bvalue.elem.Schema */ -}}
           {{- end -}}{{- /* end if $bvalue.elem */ -}}
         {{- end -}}{{- /* end range $bname, $bvalue */ -}}
-      {{- end -}}{{- /* end if $value.Elem.schema */ -}}
+      {{- end -}}{{- /* end if $value.Elem.Schema */ -}}
     {{- end -}}{{- /* end if $value.Elem */ -}}
   {{- end -}}{{- /* end range $name */ -}}
 {{- end -}}{{- /* end define "tier2block"*/ -}}
