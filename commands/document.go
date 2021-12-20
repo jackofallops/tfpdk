@@ -29,6 +29,7 @@ type DocumentData struct {
 	IDExample             string
 	Examples              []string
 	ResourceData          string
+	SchemaAPIURL          string
 }
 
 func (d *DocumentData) ParseArgs(args []string) (errors []error) {
@@ -37,6 +38,7 @@ func (d *DocumentData) ParseArgs(args []string) (errors []error) {
 	docSet.StringVar(&d.ServicePackage, "servicepackage", "", "The name of the Service Package the resource or data source belongs to")
 	docSet.StringVar(&d.DocType, "type", "", "The type of item to document, one of `resource` or `datasource`")
 	docSet.StringVar(&d.IDExample, "id", "", "An example of the ID this resource has when created (only valid for `-type=resource`)")
+	docSet.StringVar(&d.SchemaAPIURL, "schemaapiurl", config.SchemaAPIURL, "The URL of the Provider's JSON API (defaults to http://localhost:8080)")
 	err := docSet.Parse(args)
 	if err != nil {
 		errors = append(errors, err)
@@ -45,6 +47,11 @@ func (d *DocumentData) ParseArgs(args []string) (errors []error) {
 
 	if d.Name == "" {
 		errors = append(errors, fmt.Errorf("required option `-name` missing\n"))
+		return errors
+	}
+	if d.DocType == "" {
+		errors = append(errors, fmt.Errorf("required option `-type` missing\n"))
+		return errors
 	}
 
 	if strings.EqualFold(d.DocType, "resource") && d.IDExample == "" {
@@ -103,7 +110,7 @@ func (d *DocumentData) generate() error {
 		d.SnakeName = strcase.ToSnake(fmt.Sprintf("%s_%s", d.ProviderName, d.Name))
 	}
 
-	resource, err := helpers.GetSchema(config.SchemaAPIURL, d.DocType, d.SnakeName)
+	resource, err := helpers.GetSchema(d.SchemaAPIURL, d.DocType, d.SnakeName)
 	if err != nil {
 		return err
 	}
@@ -123,7 +130,7 @@ func (d *DocumentData) generate() error {
 
 	f, err := os.Create(outputPath)
 	if err != nil {
-		fmt.Printf("[DEBUG] failed opening output resource file for writing: %+v", err.Error())
+		fmt.Printf("[DEBUG] failed opening output documentation file for writing: %+v", err.Error())
 		return err
 	}
 
@@ -134,8 +141,4 @@ func (d *DocumentData) generate() error {
 		return err
 	}
 	return nil
-}
-
-func buildAPIURL(base, resourceType string) string {
-	return ""
 }

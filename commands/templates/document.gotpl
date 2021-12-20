@@ -76,12 +76,12 @@ resource "{{.ProviderName}}_{{.Name}}" "example" {
 {{- define "tier1block"}}
   {{- range $name, $value := .Resource.Schema -}}
     {{- if $value.Elem -}}
-      {{- if $value.Elem.Schema}}
+      {{- if $value.Elem.schema}}
 
 ---
 
 {{PrefixedLabelString $name}} block supports the following:
-        {{- range $bname, $bvalue := $value.Elem.Schema}}
+        {{- range $bname, $bvalue := $value.Elem.schema}}
 
 {{SchemaItemFormatter $bvalue $bname}}{{end -}}{{- /* end range $bname, $bvalue */ -}}
       {{- end -}}{{- /* if $value.Elem.Schema */ -}}
@@ -92,15 +92,15 @@ resource "{{.ProviderName}}_{{.Name}}" "example" {
 {{- define "tier2block"}}
   {{- range $name, $value := .Resource.Schema -}}
     {{- if $value.Elem -}}
-      {{- if $value.Elem.Schema -}}
-        {{- range $bname, $bvalue := $value.Elem.Schema -}}
+      {{- if $value.Elem.schema -}}
+        {{- range $bname, $bvalue := $value.Elem.schema -}}
           {{- if $bvalue.elem -}}
-            {{- if $bvalue.elem.Schema}}
+            {{- if $bvalue.elem.schema}}
 
 ---
 
 {{PrefixedLabelString $bname}} block supports the following:
-              {{- range $cname, $cvalue := $bvalue.elem.Schema}}
+              {{- range $cname, $cvalue := $bvalue.elem.schema}}
 
 {{SchemaItemFormatter $cvalue $cname}}{{end -}}{{- /* range $cname, $cvalue */ -}}
             {{- end -}}{{- /* end if $bvalue.elem.Schema */ -}}
