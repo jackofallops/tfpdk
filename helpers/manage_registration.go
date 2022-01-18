@@ -176,18 +176,17 @@ func typedAppendResourceToRegistrationBlock() astutil.ApplyFunc {
 	return func(c *astutil.Cursor) bool {
 		m := c.Node()
 		typedName := strcase.ToCamel(resourceNameToAdd)
-		addEntry := true
 		if t, ok := m.(*ast.CompositeLit); ok {
 			if _, ok := t.Type.(*ast.ArrayType); ok && t.Elts == nil {
 				// No entries in the list
-				addEntry = false
 				t.Elts = []ast.Expr{firstTypedRegistrationBlockEntry(typedName, int(t.Lbrace)+4)}
 				c.Replace(t)
 				return false
 			}
 
 			if p, parentOk := c.Parent().(*ast.CompositeLit); parentOk {
-				if _, ok := t.Type.(*ast.Ident); ok && addEntry {
+				addEntry := true
+				if _, ok := t.Type.(*ast.Ident); ok {
 					for _, v := range p.Elts {
 						if v.(*ast.CompositeLit).Type.(*ast.Ident).Name == typedName {
 							addEntry = false

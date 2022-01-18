@@ -12,6 +12,8 @@ description: |-
 
 Manages {{PrefixedDescriptionString .Name}}.
 
+## Example Usage
+
 ```hcl
 {{- template "usage_example" .}}
 ```
@@ -31,7 +33,7 @@ The following arguments are supported:
 {{SchemaItemFormatter $value $name}}{{end -}}
 {{end -}}
 {{- template "tier1block" .}}
-{{- template "tier2block" .}}
+{{- template "tier2block" .Resource.Schema}}
 
 ## Attributes Reference
 
@@ -90,7 +92,7 @@ resource "{{.ProviderName}}_{{.Name}}" "example" {
 {{- end -}}{{- /* end define "tier1block"*/ -}}
 
 {{- define "tier2block"}}
-  {{- range $name, $value := .Resource.Schema -}}
+  {{- range $name, $value := . -}}
     {{- if $value.Elem -}}
       {{- if $value.Elem.schema -}}
         {{- range $bname, $bvalue := $value.Elem.schema -}}

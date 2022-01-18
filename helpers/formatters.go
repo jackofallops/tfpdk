@@ -81,7 +81,7 @@ func SchemaItemFormatter(input interface{}, name string) string {
 
 	if data.ForceNew {
 		forceNew = "Changing this forces a new resource to be created."
-		return fmt.Sprintf("* `%s` %s- %s %s", name, optionalOrRequired, desc, forceNew)
+		return fmt.Sprintf("* `%s` -%s %s %s", name, optionalOrRequired, desc, forceNew)
 	}
 
 	return fmt.Sprintf("* `%s` %s- %s", name, optionalOrRequired, desc)
