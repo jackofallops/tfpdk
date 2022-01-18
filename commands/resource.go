@@ -68,11 +68,13 @@ func (c ResourceCommand) Run(args []string) int {
 }
 
 func (d ResourceData) generate() error {
-	providerName, err := helpers.ProviderName()
-	if err != nil {
-		return err
+	if d.ProviderName == "" {
+		providerName, err := helpers.ProviderName()
+		if err != nil {
+			return err
+		}
+		d.ProviderName = *providerName
 	}
-	d.ProviderName = *providerName
 
 	tpl := template.Must(template.New("resource.gotpl").Funcs(TplFuncMap).ParseFS(Templatedir, "templates/resource.gotpl"))
 

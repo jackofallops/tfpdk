@@ -48,11 +48,10 @@ use_typed_sdk                   = false
 			t.Fatalf("generated config does not match expected")
 		}
 
-		//Tidy up
+		// Tidy up
 		err = os.Remove(".tfpdk.hcl")
 		if err != nil && !errors.Is(err, os.ErrNotExist) {
 			t.Errorf("removing test .tfpdk.hcl file")
 		}
 	}
-
 }

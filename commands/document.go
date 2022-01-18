@@ -19,15 +19,17 @@ type DocumentCommand struct {
 var _ cli.Command = DocumentCommand{}
 
 type DocumentData struct {
-	Name           string
-	SnakeName      string
-	ProviderName   string
-	ServicePackage string
-	DocType        string
-	Schema         helpers.ResourceSchema
-	IDExample      string
-	Examples       []string
-	ResourceData   string
+	Name                  string
+	SnakeName             string
+	ProviderName          string
+	ProviderCanonicalName string
+	ServicePackage        string
+	DocType               string
+	Resource              helpers.Resource
+	IDExample             string
+	Examples              []string
+	ResourceData          string
+	SchemaAPIURL          string
 }
 
 func (d *DocumentData) ParseArgs(args []string) (errors []error) {
@@ -36,6 +38,7 @@ func (d *DocumentData) ParseArgs(args []string) (errors []error) {
 	docSet.StringVar(&d.ServicePackage, "servicepackage", "", "The name of the Service Package the resource or data source belongs to")
 	docSet.StringVar(&d.DocType, "type", "", "The type of item to document, one of `resource` or `datasource`")
 	docSet.StringVar(&d.IDExample, "id", "", "An example of the ID this resource has when created (only valid for `-type=resource`)")
+	docSet.StringVar(&d.SchemaAPIURL, "schemaapiurl", config.SchemaAPIURL, "The URL of the Provider's JSON API (defaults to http://localhost:8080)")
 	err := docSet.Parse(args)
 	if err != nil {
 		errors = append(errors, err)
@@ -44,10 +47,21 @@ func (d *DocumentData) ParseArgs(args []string) (errors []error) {
 
 	if d.Name == "" {
 		errors = append(errors, fmt.Errorf("required option `-name` missing\n"))
+		return errors
+	}
+	if d.DocType == "" {
+		errors = append(errors, fmt.Errorf("required option `-type` missing\n"))
+		return errors
 	}
 
 	if strings.EqualFold(d.DocType, "resource") && d.IDExample == "" {
 		errors = append(errors, fmt.Errorf("`-id` required when `-type=resource\n`"))
+	}
+
+	if config.ProviderCanonicalName != "" {
+		d.ProviderCanonicalName = config.ProviderCanonicalName
+	} else {
+		d.ProviderCanonicalName = d.Name
 	}
 
 	return errors
@@ -96,41 +110,27 @@ func (d *DocumentData) generate() error {
 		d.SnakeName = strcase.ToSnake(fmt.Sprintf("%s_%s", d.ProviderName, d.Name))
 	}
 
-	// provider := helpers.OpenProviderJSON("/tmp/provider-out.json")
-	provider := helpers.GetTerraformSchemaJSON()
-
-	schema, err := helpers.ParseProviderJSON(provider, d.ProviderName, d.SnakeName, helpers.DocType(d.DocType))
-	if err != nil || schema == nil {
-		fmt.Printf("[DEBUG] reading %s %s from provider JSON", d.DocType, d.Name)
+	resource, err := helpers.GetSchema(d.SchemaAPIURL, d.DocType, d.SnakeName)
+	if err != nil {
 		return err
 	}
-
-	// terraform marks the id as optional in the output JSON, this makes the template super messy, so we'll flip the bool here
-	if tmpID, ok := schema.Block.Attributes["id"]; ok {
-		tmpID.Optional = false
-		schema.Block.Attributes["id"] = tmpID
-	}
-
-	d.Schema = *schema
+	d.Resource = *resource
 
 	tpl := template.Must(template.New("document.gotpl").Funcs(TplFuncMap).ParseFS(Templatedir, "templates/document.gotpl"))
 
-	outputPath := fmt.Sprintf("website/%s", config.DocsPath) // TODO - AzureRM will drop the `website` in 3.0
+	outputPath := fmt.Sprintf("website/%s", config.DocsPath) // TODO - AzureRM may drop the `website` in 3.0
 	if d.DocType == "datasource" {
 		outputPath = fmt.Sprintf("%s/%s", outputPath, config.DataSourceDocsDirname)
 	} else {
 		outputPath = fmt.Sprintf("%s/%s", outputPath, config.ResourceDocsDirname)
 	}
-	//if d.ServicePackage != "" { // TODO - revisit this when we know what structure we need for RM3.0 etc
-	//	outputPath = fmt.Sprintf("internal/services/%s/docs/%s.md", strings.ToLower(strcase.ToCamel(d.ServicePackage)), d.SnakeName)
-	//} else {
-	//}
+
 	providerPrefix := fmt.Sprintf("%s_", d.ProviderName)
 	outputPath = fmt.Sprintf("%s/%s.md", outputPath, strings.TrimPrefix(d.SnakeName, providerPrefix))
 
 	f, err := os.Create(outputPath)
 	if err != nil {
-		fmt.Printf("[DEBUG] failed opening output resource file for writing: %+v", err.Error())
+		fmt.Printf("[DEBUG] failed opening output documentation file for writing: %+v", err.Error())
 		return err
 	}
 
