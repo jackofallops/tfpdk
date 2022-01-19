@@ -9,6 +9,8 @@ import (
 	"github.com/iancoleman/strcase"
 )
 
+const forceNew = "Changing this forces a new resource to be created."
+
 func TerraformResourceName(provider, resourceName string) string {
 	fmtStr := "%s_%s"
 	return fmt.Sprintf(fmtStr, strings.ToLower(provider), strcase.ToSnake(resourceName))
@@ -43,12 +45,11 @@ func ToDelimTitle(input string) string {
 }
 
 func PrefixedLabelString(input string) string {
-	prefix := "a"
-	first := input[0:1]
-	vowel, _ := regexp.Match(first, []byte(`aeiouAEIOU`))
+	prefix := "A"
+	vowel, _ := regexp.Match(input[0:1], []byte(`aeiouAEIOU`))
 
 	if vowel {
-		prefix = "an"
+		prefix = "An"
 	}
 
 	return fmt.Sprintf("%s `%s`", prefix, input)
@@ -60,17 +61,17 @@ func SchemaItemFormatter(input interface{}, name string) string {
 	case Schema:
 		data = v
 	case map[string]interface{}:
-		data = flattenMapToSchema(v)
+		data = FlattenMapToSchema(v)
 	}
 	// Block detection
-	var optionalOrRequired, desc, forceNew string
+	var optionalOrRequired, desc string
 	if data.Required {
-		optionalOrRequired = "(Required) "
+		optionalOrRequired = "(Required)"
 	} else if data.Optional {
-		optionalOrRequired = "(Optional) "
+		optionalOrRequired = "(Optional)"
 	}
-	if strings.EqualFold(data.Type, "typelist") || strings.EqualFold(data.Type, "typeset") {
-		return fmt.Sprintf("* `%s` %s- %s block as detailed below.", name, optionalOrRequired, PrefixedLabelString(name))
+	if (strings.EqualFold(data.Type, "TypeList") || strings.EqualFold(data.Type, "TypeSet")) && data.Description == "" {
+		return fmt.Sprintf("* `%s` - %s %s block as detailed below.", name, optionalOrRequired, PrefixedLabelString(name))
 	}
 
 	if data.Description != "" {
@@ -80,17 +81,43 @@ func SchemaItemFormatter(input interface{}, name string) string {
 	}
 
 	if data.ForceNew {
-		forceNew = "Changing this forces a new resource to be created."
-		return fmt.Sprintf("* `%s` -%s %s %s", name, optionalOrRequired, desc, forceNew)
+		return fmt.Sprintf("* `%s` - %s %s %s", name, optionalOrRequired, desc, forceNew)
 	}
 
-	return fmt.Sprintf("* `%s` %s- %s", name, optionalOrRequired, desc)
+	return fmt.Sprintf("* `%s` - %s %s", name, optionalOrRequired, desc)
+}
+
+func SchemaItemFormatterAttributes(input interface{}, name string) string {
+	data := Schema{}
+	switch v := input.(type) {
+	case Schema:
+		data = v
+	case map[string]interface{}:
+		data = FlattenMapToSchema(v)
+	}
+	// Block detection
+	var desc string
+	if (strings.EqualFold(data.Type, "TypeList") || strings.EqualFold(data.Type, "TypeSet")) && data.Description == "" {
+		return fmt.Sprintf("* `%s` - %s block as detailed above.", name, PrefixedLabelString(name))
+	}
+
+	if data.Description != "" {
+		desc = strings.TrimSpace(data.Description) // TODO auto-fix line ends for MD linting?
+	} else {
+		desc = "// TODO - Add missing `Description` to schema for this property and regenerate this file."
+	}
+
+	if data.ForceNew {
+		return fmt.Sprintf("* `%s` - %s %s", name, desc, forceNew)
+	}
+
+	return fmt.Sprintf("* `%s` - %s", name, desc)
 }
 
 func SchemaItemFormatterSpecial(input Schema, name string) string {
 	switch name {
 	case "name", "resource_group_name", "location":
-		var optionalOrRequired, desc, forceNew string
+		var optionalOrRequired, desc string
 		if input.Required {
 			optionalOrRequired = "(Required)"
 		} else if input.Optional {
@@ -102,16 +129,15 @@ func SchemaItemFormatterSpecial(input Schema, name string) string {
 			desc = "// TODO - Add missing `Description` to schema for this property and regenerate this file."
 		}
 		if input.ForceNew {
-			forceNew = "Changing this forces a new resource to be created."
-			return fmt.Sprintf("* `%s` %s - %s %s", name, optionalOrRequired, desc, forceNew)
+			return fmt.Sprintf("* `%s` - %s %s %s", name, optionalOrRequired, desc, forceNew)
 		}
 
-		return fmt.Sprintf("* `%s` %s - %s", name, optionalOrRequired, desc)
+		return fmt.Sprintf("* `%s` - %s %s", name, optionalOrRequired, desc)
 	}
 	return ""
 }
 
-func flattenMapToSchema(input map[string]interface{}) Schema {
+func FlattenMapToSchema(input map[string]interface{}) Schema {
 	output := Schema{}
 	if t, ok := input["type"]; ok {
 		output.Type = t.(string)

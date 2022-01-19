@@ -1,0 +1,11 @@
+---
+subcategory: "{{ToDelimTitle .ServicePackage}}"
+layout: "{{.ProviderName}}"
+page_title: "{{.ProviderCanonicalName}}: {{.SnakeName}}"
+description: |-
+Manages {{PrefixedDescriptionString .Name}}.
+---
+# {{.ProviderName}}_{{.Name}}
+
+Manages {{PrefixedDescriptionString .Name}}.
+

@@ -116,9 +116,9 @@ func (d *DocumentData) generate() error {
 	}
 	d.Resource = *resource
 
-	tpl := template.Must(template.New("document.gotpl").Funcs(TplFuncMap).ParseFS(Templatedir, "templates/document.gotpl"))
+	tpl := template.Must(template.New("").Funcs(TplFuncMap).ParseFS(Templatedir, "templates/document-*.gotpl"))
 
-	outputPath := fmt.Sprintf("website/%s", config.DocsPath) // TODO - AzureRM may drop the `website` in 3.0
+	outputPath := config.DocsPath
 	if d.DocType == "datasource" {
 		outputPath = fmt.Sprintf("%s/%s", outputPath, config.DataSourceDocsDirname)
 	} else {
@@ -136,9 +136,62 @@ func (d *DocumentData) generate() error {
 
 	defer f.Close()
 
-	err = tpl.Execute(f, d)
+	//err = tpl.Execute(f, d)
+	// TODO - make a helper to hand this off to
+	err = tpl.ExecuteTemplate(f, "document-header.gotpl", d)
+	err = tpl.ExecuteTemplate(f, "document-usage-example.gotpl", d)
+	err = tpl.ExecuteTemplate(f, "document-schema-toplevel.gotpl", d)
+
+	for k, v := range d.Resource.Schema {
+		if data := v.Elem; data != nil {
+			if s, ok := data.(map[string]interface{}); ok {
+				if _, ok := s["schema"].(map[string]interface{}); ok {
+					renderNestedSchemaBlock(k, s, f, tpl)
+				}
+			}
+		}
+	}
+
+	err = tpl.ExecuteTemplate(f, "document-schema-attributes.gotpl", d)
+	err = tpl.ExecuteTemplate(f, "document-footer.gotpl", d)
 	if err != nil {
 		return err
 	}
 	return nil
 }
+
+func renderNestedSchemaBlock(name string, props map[string]interface{}, f *os.File, tpl *template.Template) {
+	_ = tpl.ExecuteTemplate(f, "document-schema-block-header.gotpl", name)
+	_ = tpl.ExecuteTemplate(f, "document-schema-block.gotpl", props)
+
+	if schema, ok := props["schema"].(map[string]interface{}); ok {
+		for k, v := range schema {
+			if d, ok := v.(map[string]interface{}); ok && d["elem"] != nil {
+				if data := helpers.FlattenMapToSchema(d).Elem; data != nil {
+					if s, ok := data.(map[string]interface{}); ok {
+						if _, ok := s["schema"].(map[string]interface{}); ok {
+							renderNestedSchemaBlock(k, s, f, tpl)
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+//func renderNestedSchemaBlock(name string, props map[string]interface{}, f *os.File, tpl *template.Template) {
+//	_ = tpl.ExecuteTemplate(f, "document-schema-block-header.gotpl", name)
+//	_ = tpl.ExecuteTemplate(f, "document-schema-block.gotpl", props)
+//
+//	if s, ok := props["schema"].(map[string]interface{}); ok {
+//		for k, v := range s {
+//			if d, ok := v.(map[string]interface{}); ok && d["elem"] != nil {
+//				if data, ok := d["elem"].(map[string]interface{}); ok {
+//					if _, ok := data["schema"].(map[string]interface{}); ok {
+//						renderNestedSchemaBlock(k, data, f, tpl)
+//					}
+//				}
+//			}
+//		}
+//	}
+//}
