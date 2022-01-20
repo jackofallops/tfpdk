@@ -31,7 +31,7 @@ const (
 var resourceNameToAdd string
 
 // UpdateRegistration modifies the `registration.go` file to add (or remove?) items from the relevant blocks when
-// a user adds (or removes?) a reource or datasource via `tfpdk resource` or `tfpdk datasource`
+// a user adds (or removes?) a resource or datasource via `tfpdk resource` or `tfpdk datasource`
 //
 // servicePackagePath = The path from the route of the provider to the service package to which the item is to be registered
 // resourceName = the model name of a typed resource, or the snakeCase name of the item

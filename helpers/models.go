@@ -2,7 +2,7 @@ package helpers
 
 type DocType string
 
-const DocTypeDataSource DocType = "datasource"
+const DocTypeDataSource DocType = "data-source"
 const DocTypeResource DocType = "resource"
 
 type Schema struct {

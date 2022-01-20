@@ -1,0 +1,5 @@
+---
+{{- range $name, $value := .Resource.Schema }}{{- if $value.Optional}}
+{{SchemaItemFormatter $value $name}}{{end -}}
+{{end}}
+

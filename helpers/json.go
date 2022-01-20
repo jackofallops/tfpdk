@@ -8,8 +8,10 @@ import (
 	"strings"
 )
 
-func GetSchema(apiPath string, docType string, name string) (*Resource, error) {
-	resp, err := http.Get(fmt.Sprintf("%s/%ss/%s", apiPath, docType, name))
+const apiPath = "/schema-data/v1/"
+
+func GetSchema(apiHost string, docType string, name string) (*Resource, error) {
+	resp, err := http.Get(fmt.Sprintf("%s%s%ss/%s", strings.TrimSuffix(apiHost, "/"), apiPath, docType, name))
 	if err != nil {
 		return nil, err
 	}

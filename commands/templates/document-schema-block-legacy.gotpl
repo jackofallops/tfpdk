@@ -1,0 +1,5 @@
+{{- range $name, $value := .schema -}}
+
+{{SchemaItemFormatter $value $name}}
+
+{{end -}}{{- /* end range $name, $value */ -}}

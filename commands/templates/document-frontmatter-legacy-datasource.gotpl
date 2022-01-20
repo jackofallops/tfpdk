@@ -1,0 +1,8 @@
+---
+subcategory: "{{ToDelimTitle .ServicePackage}}"
+layout: "{{.ProviderName}}"
+page_title: "{{.ProviderCanonicalName}}: {{.SnakeName}}"
+description: |-
+	Gets information about {{PrefixedDescriptionString .Name}}.
+---
+

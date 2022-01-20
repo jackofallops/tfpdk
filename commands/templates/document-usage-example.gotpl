@@ -1,0 +1,10 @@
+## Example Usage
+
+```hcl
+resource "{{.ProviderName}}_{{.Name}}" "example" {
+{{range $name, $value := .Resource.Schema }}{{if and ($value.Required) (eq $value.Type "TypeString")}}  {{$name}} = "example"
+{{end}}{{end}}
+{{range $name, $value := .Resource.Schema }}{{if and ($value.Required) (eq $value.Type "TypeList")}}  {{$name}} = {}
+{{end}}{{end}}}
+```
+

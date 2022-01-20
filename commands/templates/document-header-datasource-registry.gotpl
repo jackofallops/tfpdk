@@ -1,0 +1,5 @@
+
+# Data Source: {{.ProviderName}}_{{.Name}}
+
+Gets information about {{PrefixedDescriptionString .Name}}.
+
