@@ -1,0 +1,7 @@
+## Arguments Reference
+
+The following arguments are supported:
+{{range $name, $value := .Resource.Schema }}{{- if $value.Required}}
+{{SchemaItemFormatter $value $name}}{{end -}}
+{{end}}
+

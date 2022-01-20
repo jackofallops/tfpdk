@@ -8,20 +8,25 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsimple"
 )
 
+type DocsVersion string
+
 const (
-	ConfigFileName = ".tfpdk.hcl"
+	ConfigFileName                  = ".tfpdk.hcl"
+	DocsVersionLegacy   DocsVersion = "legacy"
+	DocsVersionRegistry DocsVersion = "registry"
 )
 
 type Configuration struct {
-	ProviderName          string `hcl:"provider_name,optional"`
-	ProviderCanonicalName string `hcl:"provider_canonical_name,optional"`
-	ServicePackagesPath   string `hcl:"service_packages_path,optional"`
-	SchemaAPIURL          string `hcl:"schema_api_url,optional"`
-	DocsPath              string `hcl:"docs_path,optional"`
-	ProviderGithubOrg     string `hcl:"provider_github_org,optional"`
-	ResourceDocsDirname   string `hcl:"resource_docs_directory_name,optional"`
-	DataSourceDocsDirname string `hcl:"data_source_docs_directory_name,optional"`
-	TypedSDK              bool   `hcl:"use_typed_sdk,optional"`
+	ProviderName          string      `hcl:"provider_name,optional"`
+	ProviderCanonicalName string      `hcl:"provider_canonical_name,optional"`
+	ServicePackagesPath   string      `hcl:"service_packages_path,optional"`
+	SchemaAPIURL          string      `hcl:"schema_api_url,optional"`
+	DocsPath              string      `hcl:"docs_path,optional"`
+	DocsVersion           DocsVersion `hcl:"docs_version,optional"`
+	ProviderGithubOrg     string      `hcl:"provider_github_org,optional"`
+	ResourceDocsDirname   string      `hcl:"resource_docs_directory_name,optional"`
+	DataSourceDocsDirname string      `hcl:"data_source_docs_directory_name,optional"`
+	TypedSDK              bool        `hcl:"use_typed_sdk,optional"`
 }
 
 // LoadConfig loads the configuration file if present to allow users to override various settings in the
@@ -29,9 +34,10 @@ type Configuration struct {
 func LoadConfig() *Configuration {
 	config := Configuration{
 		ServicePackagesPath:   "internal/services",
-		SchemaAPIURL:          "http://localhost:8080/schema-data/v1/",
+		SchemaAPIURL:          "http://localhost:8080",
 		ProviderGithubOrg:     "hashicorp",
 		DocsPath:              "docs",
+		DocsVersion:           DocsVersionLegacy,
 		ResourceDocsDirname:   "r",
 		DataSourceDocsDirname: "d",
 		TypedSDK:              false,

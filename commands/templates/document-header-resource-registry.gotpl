@@ -1,3 +1,5 @@
-# {{.ProviderName}}_{{.Name}}
+
+# Resource: {{.ProviderName}}_{{.Name}}
 
 Manages {{PrefixedDescriptionString .Name}}.
+

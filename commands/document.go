@@ -36,7 +36,7 @@ func (d *DocumentData) ParseArgs(args []string) (errors []error) {
 	docSet := flag.NewFlagSet("document", flag.ExitOnError)
 	docSet.StringVar(&d.Name, "name", "", "The name of the resource")
 	docSet.StringVar(&d.ServicePackage, "servicepackage", "", "The name of the Service Package the resource or data source belongs to")
-	docSet.StringVar(&d.DocType, "type", "", "The type of item to document, one of `resource` or `datasource`")
+	docSet.StringVar(&d.DocType, "type", "", "The type of item to document, one of `resource` or `data-source`")
 	docSet.StringVar(&d.IDExample, "id", "", "An example of the ID this resource has when created (only valid for `-type=resource`)")
 	docSet.StringVar(&d.SchemaAPIURL, "schemaapiurl", config.SchemaAPIURL, "The URL of the Provider's JSON API (defaults to http://localhost:8080)")
 	err := docSet.Parse(args)
@@ -56,6 +56,10 @@ func (d *DocumentData) ParseArgs(args []string) (errors []error) {
 
 	if strings.EqualFold(d.DocType, "resource") && d.IDExample == "" {
 		errors = append(errors, fmt.Errorf("`-id` required when `-type=resource\n`"))
+	}
+
+	if strings.EqualFold(d.DocType, "datasource") {
+		d.DocType = "data-source"
 	}
 
 	if config.ProviderCanonicalName != "" {
@@ -119,7 +123,7 @@ func (d *DocumentData) generate() error {
 	tpl := template.Must(template.New("").Funcs(TplFuncMap).ParseFS(Templatedir, "templates/document-*.gotpl"))
 
 	outputPath := config.DocsPath
-	if d.DocType == "datasource" {
+	if d.DocType == "data-source" {
 		outputPath = fmt.Sprintf("%s/%s", outputPath, config.DataSourceDocsDirname)
 	} else {
 		outputPath = fmt.Sprintf("%s/%s", outputPath, config.ResourceDocsDirname)
@@ -136,33 +140,235 @@ func (d *DocumentData) generate() error {
 
 	defer f.Close()
 
-	//err = tpl.Execute(f, d)
-	// TODO - make a helper to hand this off to
-	err = tpl.ExecuteTemplate(f, "document-header.gotpl", d)
-	err = tpl.ExecuteTemplate(f, "document-usage-example.gotpl", d)
-	err = tpl.ExecuteTemplate(f, "document-schema-toplevel.gotpl", d)
+	return d.renderDoc(f, tpl)
+}
+
+func (d *DocumentData) renderDoc(f *os.File, tpl *template.Template) error {
+	if d.DocType == string(helpers.DocTypeDataSource) {
+		switch config.DocsVersion {
+		case helpers.DocsVersionRegistry:
+			return d.renderDataSourceDocRegistry(f, tpl)
+		default:
+			return d.renderDataSourceDocLegacy(f, tpl)
+		}
+	}
+
+	switch config.DocsVersion {
+	case helpers.DocsVersionRegistry:
+		return d.renderResourceDocRegistry(f, tpl)
+	default:
+		return d.renderResourceDocLegacy(f, tpl)
+	}
+}
+
+func (d *DocumentData) renderResourceDocLegacy(f *os.File, tpl *template.Template) error {
+	if err := tpl.ExecuteTemplate(f, "document-frontmatter-legacy-resource.gotpl", d); err != nil {
+		return err
+	}
+	if err := tpl.ExecuteTemplate(f, "document-header-resource-legacy.gotpl", d); err != nil {
+		return err
+	}
+	if err := tpl.ExecuteTemplate(f, "document-usage-example.gotpl", d); err != nil {
+		return err
+	}
+
+	if err := tpl.ExecuteTemplate(f, "document-schema-toplevel-required.gotpl", d); err != nil {
+		return err
+	}
+
+	// only process the Optional params if at least one top level item is Optional
+	for _, v := range d.Resource.Schema {
+		if v.Optional {
+			if err := tpl.ExecuteTemplate(f, "document-schema-toplevel-optional.gotpl", d); err != nil {
+				return err
+			}
+			break
+		}
+	}
 
 	for k, v := range d.Resource.Schema {
 		if data := v.Elem; data != nil {
 			if s, ok := data.(map[string]interface{}); ok {
 				if _, ok := s["schema"].(map[string]interface{}); ok {
-					renderNestedSchemaBlock(k, s, f, tpl)
+					if err := renderNestedSchemaBlock(k, s, f, tpl); err != nil {
+						return err
+					}
 				}
 			}
 		}
 	}
 
-	err = tpl.ExecuteTemplate(f, "document-schema-attributes.gotpl", d)
-	err = tpl.ExecuteTemplate(f, "document-footer.gotpl", d)
-	if err != nil {
+	if err := tpl.ExecuteTemplate(f, "document-schema-attributes-legacy.gotpl", d); err != nil {
 		return err
 	}
+
+	if err := tpl.ExecuteTemplate(f, "document-footer-resource.gotpl", d); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func renderNestedSchemaBlock(name string, props map[string]interface{}, f *os.File, tpl *template.Template) {
-	_ = tpl.ExecuteTemplate(f, "document-schema-block-header.gotpl", name)
-	_ = tpl.ExecuteTemplate(f, "document-schema-block.gotpl", props)
+func (d *DocumentData) renderResourceDocRegistry(f *os.File, tpl *template.Template) error {
+	if err := tpl.ExecuteTemplate(f, "document-frontmatter-registry.gotpl", d); err != nil {
+		return err
+	}
+	if err := tpl.ExecuteTemplate(f, "document-header-resource-registry.gotpl", d); err != nil {
+		return err
+	}
+
+	if err := tpl.ExecuteTemplate(f, "document-usage-example.gotpl", d); err != nil {
+		return err
+	}
+
+	if err := tpl.ExecuteTemplate(f, "document-schema-toplevel-required-registry.gotpl", d); err != nil {
+		return err
+	}
+
+	// only process the Optional params if at least one top level item is Optional
+	for _, v := range d.Resource.Schema {
+		if v.Optional {
+			if err := tpl.ExecuteTemplate(f, "document-schema-toplevel-optional-registry.gotpl", d); err != nil {
+				return err
+			}
+			break
+		}
+	}
+
+	for k, v := range d.Resource.Schema {
+		if data := v.Elem; data != nil {
+			if s, ok := data.(map[string]interface{}); ok {
+				if _, ok := s["schema"].(map[string]interface{}); ok {
+					if err := renderNestedSchemaBlock(k, s, f, tpl); err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
+
+	if err := tpl.ExecuteTemplate(f, "document-schema-attributes-registry.gotpl", d); err != nil {
+		return err
+	}
+
+	if err := tpl.ExecuteTemplate(f, "document-footer-resource.gotpl", d); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *DocumentData) renderDataSourceDocLegacy(f *os.File, tpl *template.Template) error {
+	if err := tpl.ExecuteTemplate(f, "document-frontmatter-legacy-datasource.gotpl", d); err != nil {
+		return err
+	}
+	if err := tpl.ExecuteTemplate(f, "document-header-datasource-legacy.gotpl", d); err != nil {
+		return err
+	}
+
+	if err := tpl.ExecuteTemplate(f, "document-usage-example.gotpl", d); err != nil {
+		return err
+	}
+
+	if err := tpl.ExecuteTemplate(f, "document-schema-toplevel-required.gotpl", d); err != nil {
+		return err
+	}
+
+	// only process the Optional params if at least one top level item is Optional
+	for _, v := range d.Resource.Schema {
+		if v.Optional {
+			if err := tpl.ExecuteTemplate(f, "document-schema-toplevel-optional.gotpl", d); err != nil {
+				return err
+			}
+			break
+		}
+	}
+
+	if err := tpl.ExecuteTemplate(f, "document-schema-attributes-legacy.gotpl", d); err != nil {
+		return err
+	}
+
+	for k, v := range d.Resource.Schema {
+		if data := v.Elem; data != nil {
+			if s, ok := data.(map[string]interface{}); ok {
+				if _, ok := s["schema"].(map[string]interface{}); ok {
+					if err := renderNestedSchemaBlock(k, s, f, tpl); err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
+
+	if err := tpl.ExecuteTemplate(f, "document-footer-datasource.gotpl", d); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *DocumentData) renderDataSourceDocRegistry(f *os.File, tpl *template.Template) error {
+	if err := tpl.ExecuteTemplate(f, "document-frontmatter-registry.gotpl", d); err != nil {
+		return err
+	}
+	if err := tpl.ExecuteTemplate(f, "document-header-datasource-registry.gotpl", d); err != nil {
+		return err
+	}
+
+	if err := tpl.ExecuteTemplate(f, "document-usage-example.gotpl", d); err != nil {
+		return err
+	}
+
+	if err := tpl.ExecuteTemplate(f, "document-schema-toplevel-required-registry.gotpl", d); err != nil {
+		return err
+	}
+
+	// only process the Optional params if at least one top level item is Optional
+	for _, v := range d.Resource.Schema {
+		if v.Optional {
+			if err := tpl.ExecuteTemplate(f, "document-schema-toplevel-optional-registry.gotpl", d); err != nil {
+				return err
+			}
+			break
+		}
+	}
+
+	if err := tpl.ExecuteTemplate(f, "document-schema-attributes-registry.gotpl", d); err != nil {
+		return err
+	}
+
+	for k, v := range d.Resource.Schema {
+		if data := v.Elem; data != nil {
+			if s, ok := data.(map[string]interface{}); ok {
+				if _, ok := s["schema"].(map[string]interface{}); ok {
+					if err := renderNestedSchemaBlock(k, s, f, tpl); err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
+
+	if err := tpl.ExecuteTemplate(f, "document-footer-datasource.gotpl", d); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func renderNestedSchemaBlock(name string, props map[string]interface{}, f *os.File, tpl *template.Template) error {
+	if err := tpl.ExecuteTemplate(f, "document-schema-block-header.gotpl", name); err != nil {
+		return err
+	}
+	if config.DocsVersion == helpers.DocsVersionRegistry {
+		if err := tpl.ExecuteTemplate(f, "document-schema-block-registry.gotpl", props); err != nil {
+			return err
+		}
+	} else {
+		if err := tpl.ExecuteTemplate(f, "document-schema-block-legacy.gotpl", props); err != nil {
+			return err
+		}
+	}
 
 	if schema, ok := props["schema"].(map[string]interface{}); ok {
 		for k, v := range schema {
@@ -170,28 +376,15 @@ func renderNestedSchemaBlock(name string, props map[string]interface{}, f *os.Fi
 				if data := helpers.FlattenMapToSchema(d).Elem; data != nil {
 					if s, ok := data.(map[string]interface{}); ok {
 						if _, ok := s["schema"].(map[string]interface{}); ok {
-							renderNestedSchemaBlock(k, s, f, tpl)
+							if err := renderNestedSchemaBlock(k, s, f, tpl); err != nil {
+								return err
+							}
 						}
 					}
 				}
 			}
 		}
 	}
-}
 
-//func renderNestedSchemaBlock(name string, props map[string]interface{}, f *os.File, tpl *template.Template) {
-//	_ = tpl.ExecuteTemplate(f, "document-schema-block-header.gotpl", name)
-//	_ = tpl.ExecuteTemplate(f, "document-schema-block.gotpl", props)
-//
-//	if s, ok := props["schema"].(map[string]interface{}); ok {
-//		for k, v := range s {
-//			if d, ok := v.(map[string]interface{}); ok && d["elem"] != nil {
-//				if data, ok := d["elem"].(map[string]interface{}); ok {
-//					if _, ok := data["schema"].(map[string]interface{}); ok {
-//						renderNestedSchemaBlock(k, data, f, tpl)
-//					}
-//				}
-//			}
-//		}
-//	}
-//}
+	return nil
+}

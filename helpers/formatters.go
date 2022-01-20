@@ -70,7 +70,15 @@ func SchemaItemFormatter(input interface{}, name string) string {
 	} else if data.Optional {
 		optionalOrRequired = "(Optional)"
 	}
-	if (strings.EqualFold(data.Type, "TypeList") || strings.EqualFold(data.Type, "TypeSet")) && data.Description == "" {
+
+	isSchemaBlock := false
+	if sub, ok := data.Elem.(map[string]interface{}); ok {
+		if sub["schema"] != nil {
+			isSchemaBlock = true
+		}
+	}
+
+	if (strings.EqualFold(data.Type, "TypeList") || strings.EqualFold(data.Type, "TypeSet")) && isSchemaBlock {
 		return fmt.Sprintf("* `%s` - %s %s block as detailed below.", name, optionalOrRequired, PrefixedLabelString(name))
 	}
 
